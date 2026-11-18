@@ -36,6 +36,8 @@ public class Notification {
     private String waLink;
     /** Data de referência para deduplicação (RN46). */
     private LocalDate referenceDate;
+    /** Chave opcional de deduplicação sem empréstimo (ex.: {@code EQUIPMENT:12} para preventiva — RN39). */
+    private String referenceKey;
     private LocalDateTime sentAt;
     private String resolvedBy;
     private LocalDateTime resolvedAt;
@@ -56,6 +58,16 @@ public class Notification {
         this.status = attempts >= maxAttempts
                 ? NotificationStatus.AGUARDANDO_CONTATO_MANUAL
                 : NotificationStatus.FALHA;
+    }
+
+    /** RN47 — sem envio automático possível (canal sem provedor ou destino ausente): vira tarefa de contato manual. */
+    public void requireManualContact(String reason) {
+        this.status = NotificationStatus.AGUARDANDO_CONTATO_MANUAL;
+        this.lastError = reason;
+    }
+
+    public boolean isPendingManualContact() {
+        return status == NotificationStatus.AGUARDANDO_CONTATO_MANUAL;
     }
 
     public void completeManually(String by, LocalDateTime now) {

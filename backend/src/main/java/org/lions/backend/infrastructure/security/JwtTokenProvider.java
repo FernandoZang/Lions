@@ -16,7 +16,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /** JWT HS256 com {@code jti} (UUID) para permitir revogação. Expiração padrão: 30 min. */
 @Slf4j
@@ -39,13 +38,18 @@ public class JwtTokenProvider {
     }
 
     public String generateToken(Authentication authentication) {
-        String roles = authentication.getAuthorities().stream()
+        return generateToken(authentication.getName(), authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
+                .toList());
+    }
+
+    /** Gera token para o usuário com os perfis informados (usado também no refresh da sessão). */
+    public String generateToken(String username, java.util.Collection<String> authorities) {
+        String roles = String.join(",", authorities);
         Instant now = clock.instant();
         return Jwts.builder()
                 .id(UUID.randomUUID().toString())
-                .subject(authentication.getName())
+                .subject(username)
                 .claim("roles", roles)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusMillis(expirationMs)))

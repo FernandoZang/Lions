@@ -50,6 +50,20 @@ public class AuditService {
         return persist(entityName, entityId, action, currentUser.username(), false, null, details);
     }
 
+    /** Registra ação em nome de {@code username} (ex.: login, quando ainda não há usuário autenticado no contexto). */
+    @Transactional
+    public AuditLog recordAs(String username, String entityName, Object entityId, AuditAction action,
+                             Object details) {
+        return persist(entityName, entityId, action, username, false, null, details);
+    }
+
+    /** Registra ação do usuário corrente informando a regra de negócio de origem. */
+    @Transactional
+    public AuditLog recordWithRule(String entityName, Object entityId, AuditAction action, String originRule,
+                                   Object details) {
+        return persist(entityName, entityId, action, currentUser.username(), false, originRule, details);
+    }
+
     /** Registra ação automática do sistema (username {@value CurrentUserPort#SYSTEM_USERNAME}) com a RN de origem. */
     @Transactional
     public AuditLog recordAutomatic(String entityName, Object entityId, AuditAction action, String originRule,

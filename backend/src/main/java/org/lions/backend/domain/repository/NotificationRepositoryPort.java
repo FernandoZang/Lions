@@ -25,4 +25,11 @@ public interface NotificationRepositoryPort {
 
     /** RN46 — deduplicação por empréstimo, tipo e data de referência. */
     boolean existsByLoanIdAndTypeAndReferenceDate(Long loanId, NotificationType type, LocalDate referenceDate);
+
+    /** Deduplicação sem empréstimo (ex.: preventiva uma vez por item/mês — RN39). */
+    boolean existsByTypeAndReferenceKeyAndReferenceDate(NotificationType type, String referenceKey,
+                                                        LocalDate referenceDate);
+
+    /** Notificações do beneficiário, mais recentes primeiro. */
+    List<Notification> findByBeneficiaryId(Long beneficiaryId);
 }

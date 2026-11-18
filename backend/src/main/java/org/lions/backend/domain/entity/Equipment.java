@@ -132,6 +132,19 @@ public class Equipment {
         this.writeOffDate = today;
     }
 
+    /** RN26 — cancelamento do empréstimo: EMPRESTADO → DISPONIVEL sem contar ciclo de empréstimo (RN39). */
+    public void cancelLoan() {
+        if (status != EquipmentStatus.EMPRESTADO) {
+            throw new BusinessException("Equipamento " + label() + " não está emprestado.");
+        }
+        transitionTo(EquipmentStatus.DISPONIVEL);
+    }
+
+    /** Reservado para o beneficiário informado. */
+    public boolean isReservedFor(Long beneficiaryId) {
+        return status == EquipmentStatus.RESERVADO && Objects.equals(reservedForBeneficiaryId, beneficiaryId);
+    }
+
     public boolean isAvailable() {
         return status == EquipmentStatus.DISPONIVEL;
     }

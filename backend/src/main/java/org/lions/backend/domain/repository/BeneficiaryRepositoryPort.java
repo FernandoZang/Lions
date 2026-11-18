@@ -21,5 +21,10 @@ public interface BeneficiaryRepositoryPort {
     /** Busca por parte do nome (case-insensitive). */
     List<Beneficiary> searchByName(String name);
 
+    /** Todos (ativos ou não) com o documento (comparação exata; normalize antes). */
+    List<Beneficiary> findByDocumentNumber(String documentNumber);
+
     long count();
+
+    long countByActive(boolean active);
 }

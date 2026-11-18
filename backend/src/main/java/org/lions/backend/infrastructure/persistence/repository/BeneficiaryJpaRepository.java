@@ -17,4 +17,8 @@ public interface BeneficiaryJpaRepository extends JpaRepository<BeneficiaryJpaEn
 
     @Query("SELECT b FROM BeneficiaryJpaEntity b WHERE LOWER(b.fullName) LIKE LOWER(CONCAT('%', :name, '%')) ORDER BY b.fullName")
     List<BeneficiaryJpaEntity> searchByName(@Param("name") String name);
+
+    List<BeneficiaryJpaEntity> findByDocumentNumberOrderByIdDesc(String documentNumber);
+
+    long countByActive(boolean active);
 }

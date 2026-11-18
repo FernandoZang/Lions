@@ -20,4 +20,9 @@ public interface NotificationJpaRepository extends JpaRepository<NotificationJpa
             Collection<NotificationStatus> statuses, int maxAttempts);
 
     boolean existsByLoanIdAndTypeAndReferenceDate(Long loanId, NotificationType type, LocalDate referenceDate);
+
+    boolean existsByTypeAndReferenceKeyAndReferenceDate(NotificationType type, String referenceKey,
+                                                        LocalDate referenceDate);
+
+    List<NotificationJpaEntity> findByBeneficiaryIdOrderByCreatedAtDesc(Long beneficiaryId);
 }

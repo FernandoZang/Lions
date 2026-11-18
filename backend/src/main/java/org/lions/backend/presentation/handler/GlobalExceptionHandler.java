@@ -7,8 +7,11 @@ import jakarta.validation.Path;
 import lombok.extern.slf4j.Slf4j;
 import org.lions.backend.domain.exception.BusinessException;
 import org.lions.backend.domain.exception.ConflictException;
+import org.lions.backend.domain.exception.ExternalServiceException;
+import org.lions.backend.domain.exception.ForbiddenOperationException;
 import org.lions.backend.domain.exception.ResourceNotFoundException;
 import org.lions.backend.domain.exception.UnauthorizedException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -132,6 +135,29 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ProblemDetail> handleAccessDenied(AccessDeniedException ex) {
         return problem(HttpStatus.FORBIDDEN, "Acesso negado", "Seu perfil não tem permissão para esta operação.");
+    }
+
+    @ExceptionHandler(ForbiddenOperationException.class)
+    public ResponseEntity<ProblemDetail> handleForbiddenOperation(ForbiddenOperationException ex) {
+        return problem(HttpStatus.FORBIDDEN, "Acesso negado", ex.getMessage());
+    }
+
+    // ---------- 413 / 503 ----------
+
+    @Override
+    protected ResponseEntity<Object> handleMaxUploadSizeExceededException(
+            @NonNull MaxUploadSizeExceededException ex, @NonNull HttpHeaders headers,
+            @NonNull HttpStatusCode status, @NonNull WebRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.PAYLOAD_TOO_LARGE,
+                "O arquivo enviado excede o tamanho máximo permitido.");
+        problem.setTitle("Arquivo muito grande");
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).headers(headers).body(problem);
+    }
+
+    @ExceptionHandler(ExternalServiceException.class)
+    public ResponseEntity<ProblemDetail> handleExternalService(ExternalServiceException ex) {
+        log.warn("Falha em serviço externo: {}", ex.getMessage());
+        return problem(HttpStatus.SERVICE_UNAVAILABLE, "Serviço externo indisponível", ex.getMessage());
     }
 
     // ---------- 404 ----------

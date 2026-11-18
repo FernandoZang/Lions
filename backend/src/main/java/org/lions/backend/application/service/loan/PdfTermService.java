@@ -1,4 +1,4 @@
-package org.lions.backend.application.service;
+package org.lions.backend.application.service.loan;
 
 import com.lowagie.text.Document;
 import com.lowagie.text.Font;
@@ -21,8 +21,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.HexFormat;
 
 /**
- * Geração do termo de responsabilidade em PDF + hash SHA-256 (mínimo da Onda 0).
- * Frente D completa o fluxo (armazenamento via {@code FileStoragePort}, RN21/RN61).
+ * Geração do termo de responsabilidade em PDF + hash SHA-256 (RN06, RN16, RN21, RN61).
+ * O arquivo é armazenado pelo {@code LoanService} via {@code FileStoragePort} e nunca é excluído.
  */
 @Slf4j
 @Service
@@ -78,6 +78,8 @@ public class PdfTermService {
                             + "• Data de Início: %s\n"
                             + "• Data Prevista de Devolução: %s\n\n"
                             + "CLÁUSULAS E COMPROMISSOS:\n"
+                            + "0. O empréstimo é GRATUITO: nenhuma taxa, cobrança ou caução é exigida em "
+                            + "qualquer momento.\n"
                             + "1. O responsável compromete-se a zelar pelo bom estado de conservação do bem recebido.\n"
                             + "2. O equipamento deve ser devolvido até a data prevista, salvo renovação registrada pelo clube.\n"
                             + "3. O responsável obriga-se a comunicar imediatamente ao Lions Clube caso não necessite mais do "

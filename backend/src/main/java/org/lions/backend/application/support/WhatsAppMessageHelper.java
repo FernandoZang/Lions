@@ -67,6 +67,20 @@ public class WhatsAppMessageHelper {
                 + " Entre em contato para combinar a retirada." + SIGNATURE;
     }
 
+    public String dueTodayMessage(String beneficiaryName, String equipmentDescription,
+                                  String patrimonyNumber, LocalDate dueDate) {
+        return "Olá, " + beneficiaryName + "! O prazo de devolução do equipamento "
+                + equipment(equipmentDescription, patrimonyNumber) + " vence hoje (" + DATE.format(dueDate) + ")."
+                + " Caso ainda precise dele, entre em contato para avaliarmos a renovação." + SIGNATURE;
+    }
+
+    public String loanRegisteredMessage(String beneficiaryName, String equipmentDescription,
+                                        String patrimonyNumber, LocalDate dueDate) {
+        return "Olá, " + beneficiaryName + "! Registramos o empréstimo do equipamento "
+                + equipment(equipmentDescription, patrimonyNumber) + ". A devolução está prevista para "
+                + DATE.format(dueDate) + ". O empréstimo é gratuito." + SIGNATURE;
+    }
+
     private String equipment(String description, String patrimonyNumber) {
         if (patrimonyNumber == null || patrimonyNumber.isBlank()) {
             return description;

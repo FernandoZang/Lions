@@ -69,6 +69,17 @@ public class NotificationRepositoryAdapter implements NotificationRepositoryPort
         return jpaRepository.existsByLoanIdAndTypeAndReferenceDate(loanId, type, referenceDate);
     }
 
+    @Override
+    public boolean existsByTypeAndReferenceKeyAndReferenceDate(NotificationType type, String referenceKey,
+                                                               LocalDate referenceDate) {
+        return jpaRepository.existsByTypeAndReferenceKeyAndReferenceDate(type, referenceKey, referenceDate);
+    }
+
+    @Override
+    public List<Notification> findByBeneficiaryId(Long beneficiaryId) {
+        return map(jpaRepository.findByBeneficiaryIdOrderByCreatedAtDesc(beneficiaryId));
+    }
+
     private List<Notification> map(List<NotificationJpaEntity> entities) {
         return entities.stream().map(this::toDomainEntity).toList();
     }
@@ -88,6 +99,7 @@ public class NotificationRepositoryAdapter implements NotificationRepositoryPort
                 .lastError(domain.getLastError())
                 .waLink(domain.getWaLink())
                 .referenceDate(domain.getReferenceDate())
+                .referenceKey(domain.getReferenceKey())
                 .sentAt(domain.getSentAt())
                 .resolvedBy(domain.getResolvedBy())
                 .resolvedAt(domain.getResolvedAt())
@@ -111,6 +123,7 @@ public class NotificationRepositoryAdapter implements NotificationRepositoryPort
                 .lastError(entity.getLastError())
                 .waLink(entity.getWaLink())
                 .referenceDate(entity.getReferenceDate())
+                .referenceKey(entity.getReferenceKey())
                 .sentAt(entity.getSentAt())
                 .resolvedBy(entity.getResolvedBy())
                 .resolvedAt(entity.getResolvedAt())

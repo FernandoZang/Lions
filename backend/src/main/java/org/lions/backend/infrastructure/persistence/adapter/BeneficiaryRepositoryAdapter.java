@@ -57,8 +57,19 @@ public class BeneficiaryRepositoryAdapter implements BeneficiaryRepositoryPort {
     }
 
     @Override
+    public List<Beneficiary> findByDocumentNumber(String documentNumber) {
+        return jpaRepository.findByDocumentNumberOrderByIdDesc(documentNumber).stream()
+                .map(this::toDomainEntity).toList();
+    }
+
+    @Override
     public long count() {
         return jpaRepository.count();
+    }
+
+    @Override
+    public long countByActive(boolean active) {
+        return jpaRepository.countByActive(active);
     }
 
     public BeneficiaryJpaEntity toJpaEntity(Beneficiary domain) {

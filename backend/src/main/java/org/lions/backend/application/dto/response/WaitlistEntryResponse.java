@@ -33,7 +33,10 @@ public class WaitlistEntryResponse {
     private PriorityReason priorityReason;
     private String priorityJustification;
     private String priorityAuthorizedBy;
+    private String beneficiaryPhone;
     private Long reservedEquipmentId;
+    /** Patrimônio do equipamento reservado (preenchido pelo serviço). */
+    private String reservedPatrimonyNumber;
     private LocalDateTime reservedAt;
     private LocalDateTime reservationExpiresAt;
     private int consecutiveExpirations;
@@ -49,6 +52,7 @@ public class WaitlistEntryResponse {
                 .id(entry.getId())
                 .beneficiaryId(beneficiary != null ? beneficiary.getId() : null)
                 .beneficiaryName(beneficiary != null ? beneficiary.getFullName() : null)
+                .beneficiaryPhone(beneficiary != null ? beneficiary.getPhone() : null)
                 .equipmentType(entry.getEquipmentType())
                 .equipmentTypeDescription(entry.getEquipmentType() != null ? entry.getEquipmentType().getDescription() : null)
                 .orderId(entry.getOrderId())

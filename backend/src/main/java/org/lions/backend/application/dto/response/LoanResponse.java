@@ -14,6 +14,7 @@ import org.lions.backend.domain.enums.SignatureType;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -57,6 +58,23 @@ public class LoanResponse {
     private boolean overdue;
     private long daysOverdue;
     private boolean dueSoon;
+
+    // ---------- acréscimos (Frente D) ----------
+    private String beneficiaryPhone;
+    /** Quem deve assinar o termo (responsável legal quando exigido — RN06). */
+    private String signatoryName;
+    private boolean requiresLegalGuardian;
+    /** Há termo assinado digitalizado (assinatura física) disponível para download. */
+    private boolean signedDocumentAvailable;
+    /** Link wa.me com lembrete pronto (preenchido em listas de vencimento/atraso). */
+    private String whatsappLink;
+    /** Detalhe: pode renovar agora (RN23) e, se não, por quê. */
+    private Boolean canRenew;
+    private List<String> renewalBlockers;
+    /** Detalhe: renovações, devolução e ajustes (RN41). */
+    private List<LoanRenewalResponse> renewals;
+    private LoanReturnResponse returnInfo;
+    private List<AdjustmentResponse> adjustments;
 
     /**
      * @param today       data de referência (do {@code Clock})
@@ -104,6 +122,12 @@ public class LoanResponse {
                 .overdue(loan.isOverdue(today))
                 .daysOverdue(loan.daysOverdue(today))
                 .dueSoon(loan.isDueSoon(today, dueSoonDays))
+                .beneficiaryPhone(beneficiary != null ? beneficiary.getPhone() : null)
+                .signatoryName(beneficiary != null && !beneficiary.isAnonymized()
+                        ? beneficiary.signatoryName(today) : null)
+                .requiresLegalGuardian(beneficiary != null && !beneficiary.isAnonymized()
+                        && beneficiary.requiresLegalGuardian(today))
+                .signedDocumentAvailable(loan.getSignedDocumentPath() != null)
                 .build();
     }
 }

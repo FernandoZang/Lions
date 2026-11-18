@@ -66,6 +66,9 @@ public class NotificationJpaEntity {
     @Column(name = "reference_date")
     private LocalDate referenceDate;
 
+    @Column(name = "reference_key", length = 60)
+    private String referenceKey;
+
     private LocalDateTime sentAt;
 
     @Column(length = 50)
