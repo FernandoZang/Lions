@@ -14,16 +14,16 @@
 
 ## Onda 0 — Fundação
 
-- [ ] F0.1 `build.gradle.kts`: `com.google.zxing:core:3.5.3` e `com.google.zxing:javase:3.5.3`; `@EnableScheduling` na aplicação.
-- [ ] F0.2 Enums do `plan.md §2` (criar/alterar/remover valores).
-- [ ] F0.3 Entidades de domínio do `plan.md §3` com regras + testes unitários das máquinas de estado (Equipment/RN12, Loan, WaitlistEntry, Maintenance, Beneficiary/RN05-RN07, LoanOrder, User/RN02).
-- [ ] F0.4 Ports, JPA entities, Spring Data repos e adapters do `plan.md §3–§4` (inclui `@Version` e `findByIdForUpdate` em equipamento; remove `Requester*`).
-- [ ] F0.5 Serviços compartilhados do `plan.md §5` (Audit, Parameter + controller, CurrentUser, FileStorage, LgpdMasker, CpfValidator, PasswordPolicy, WhatsAppMessageHelper genérico) + `Clock` bean.
-- [ ] F0.6 Eventos e esqueletos/contratos do `plan.md §6` + DTOs dos contratos.
-- [ ] F0.7 `ConflictException` + `GlobalExceptionHandler` (`presentation.handler`) conforme `plan.md §1`.
-- [ ] F0.8 Segurança do `plan.md §9` (roles, rotas públicas, JWT 30 min com `jti`, `TokenRevocationService`, entry point 401/403 JSON, admin inicial configurável, CORS por propriedade, seed só em `dev`).
-- [ ] F0.9 Ajustar código existente para compilar com o novo modelo (serviços antigos reduzidos ao mínimo; donos da Onda 1 reescrevem).
-- [ ] F0.10 `src/test/resources/application.yml` com `lions.scheduling.enabled=false`; `./gradlew test` verde.
+- [x] F0.1 `build.gradle.kts`: `com.google.zxing:core:3.5.3` e `com.google.zxing:javase:3.5.3`; `@EnableScheduling` na aplicação.
+- [x] F0.2 Enums do `plan.md §2` (criar/alterar/remover valores).
+- [x] F0.3 Entidades de domínio do `plan.md §3` com regras + testes unitários das máquinas de estado (Equipment/RN12, Loan, WaitlistEntry, Maintenance, Beneficiary/RN05-RN07, LoanOrder, User/RN02).
+- [x] F0.4 Ports, JPA entities, Spring Data repos e adapters do `plan.md §3–§4` (inclui `@Version` e `findByIdForUpdate` em equipamento; remove `Requester*`).
+- [x] F0.5 Serviços compartilhados do `plan.md §5` (Audit, Parameter + controller, CurrentUser, FileStorage, LgpdMasker, CpfValidator, PasswordPolicy, WhatsAppMessageHelper genérico) + `Clock` bean.
+- [x] F0.6 Eventos e esqueletos/contratos do `plan.md §6` + DTOs dos contratos.
+- [x] F0.7 `ConflictException` + `GlobalExceptionHandler` (`presentation.handler`) conforme `plan.md §1`.
+- [x] F0.8 Segurança do `plan.md §9` (roles, rotas públicas, JWT 30 min com `jti`, `TokenRevocationService`, entry point 401/403 JSON, admin inicial configurável, CORS por propriedade, seed só em `dev`).
+- [x] F0.9 Ajustar código existente para compilar com o novo modelo (serviços antigos reduzidos ao mínimo; donos da Onda 1 reescrevem).
+- [x] F0.10 `src/test/resources/config/application.yml` com `lions.scheduling.enabled=false`; `./gradlew test` verde.
 
 ## Onda 1 — Frentes paralelas
 
