@@ -1,0 +1,95 @@
+name: Frontend CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yaml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yaml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and test frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: frontend
+        shell: bash
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Check frontend project files
+        run: |
+          if [[ ! -f package.json ]]; then
+            echo "::notice::Ainda não existe frontend/package.json. Pulando etapas de Node/build por enquanto."
+            echo "HAS_PACKAGE_JSON=false" >> "$GITHUB_ENV"
+          else
+            echo "HAS_PACKAGE_JSON=true" >> "$GITHUB_ENV"
+          fi
+
+      # ALTERAR QUANDO A STACK DO FRONTEND CHEGAR:
+      # Configurar Node/gerenciador de pacotes e rodar lint, testes e build da aplicação
+      - name: Build and test frontend
+        if: env.HAS_PACKAGE_JSON == 'true'
+        run: |
+          echo "Placeholder da stack do frontend: ajustar comandos de install, lint, test e build"
+
+      - name: Set up Docker Buildx
+        if: env.HAS_PACKAGE_JSON == 'true'
+        uses: docker/setup-buildx-action@v4
+
+      - name: Generate Docker image tags
+        id: docker-meta
+        if: env.HAS_PACKAGE_JSON == 'true'
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ vars.DOCKERHUB_IMAGE || 'lions-frontend' }}
+          tags: |
+            type=sha,format=long
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+
+      - name: Validate Docker Hub configuration
+        if: env.HAS_PACKAGE_JSON == 'true' && github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        env:
+          DOCKERHUB_IMAGE: ${{ vars.DOCKERHUB_IMAGE }}
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [[ -z "$DOCKERHUB_IMAGE" || -z "$DOCKERHUB_USERNAME" || -z "$DOCKERHUB_TOKEN" ]]; then
+            echo "::error::Configure DOCKERHUB_IMAGE and DOCKERHUB_USERNAME repository variables and the DOCKERHUB_TOKEN secret."
+            exit 1
+          fi
+
+      - name: Log in to Docker Hub
+        if: env.HAS_PACKAGE_JSON == 'true' && github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker image and publish from default branch
+        if: env.HAS_PACKAGE_JSON == 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: ./frontend
+          push: ${{ github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+          tags: ${{ steps.docker-meta.outputs.tags }}
+          labels: ${{ steps.docker-meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
