@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.lions.backend.application.port.CurrentUserPort;
 import org.lions.backend.application.service.audit.AuditService;
 import org.lions.backend.application.service.parameter.ParameterService;
-import org.lions.backend.application.support.AuditDetails;
 import org.lions.backend.application.support.LgpdMasker;
 import org.lions.backend.domain.entity.Beneficiary;
 import org.lions.backend.domain.entity.Equipment;

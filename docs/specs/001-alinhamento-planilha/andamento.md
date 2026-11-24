@@ -1,5 +1,7 @@
 # Andamento da implementação — Spec 001 (backend)
 
+> **Atualizado em 24/11/2026 (Onda 2):** integração concluída — teste ponta a ponta pela API (`FluxoPontaAPontaIT`),
+> suíte verde em H2 e PostgreSQL (239 testes) e documentação atualizada (I.1–I.4).
 > **Atualizado em 24/11/2026:** controllers REST da Onda 1 prontos (ver seções 1, 2 e 5).
 > **Revisão de 24/11/2026 (alinhamento planilha/MER):** spec revisada (itens **[rev. 24/11]** do `spec.md`), MER
 > ajustado (`docs/banco-de-dados/`), script PostgreSQL `V1__init_schema.sql`, e no código: só CPF, endereço em tabela
@@ -18,13 +20,17 @@
 | **Onda 0 — Fundação** | ✅ Concluída (já estava pronta na branch). Verificado antes das mudanças: build ok e **172 testes verdes**. |
 | **Frente G — Alinhamento planilha/MER** | ✅ G.1–G.14 concluídas (modelo, V1/V2, MER e ajustes de regra da revisão). |
 | **Onda 1 — Frentes A–F** | ✅ **Concluída.** Serviços e controllers REST das frentes A–F, as 7 rotinas agendadas, régua de lembretes, resumo diário, dashboard e relatórios. Pendente só o seed de ajuda em `dev` (A.3). |
-| **Onda 2 — Integração** | ❌ Não iniciada. |
+| **Onda 2 — Integração** | ✅ **Concluída.** I.1 merge conferido (sem conflitos; imports sem uso removidos), I.2 teste ponta a ponta pela API, I.3 suíte verde em H2 e PostgreSQL, I.4 `README.md`, `backend/README.md` e `docs/DESCRICAO_DO_PROJETO_E_BACKEND.md` atualizados. |
 
-**Estado da build (24/11/2026, após as Frentes G e F):** ✅ `./gradlew build` ok, **236 testes verdes** em H2 e também
-contra **PostgreSQL 16** com a `V1` aplicada pelo Flyway e `ddl-auto: validate` (ainda sem testes da maioria das RNs novas). Os 14 controllers foram verificados subindo a aplicação e executando o fluxo completo pela API
-(pedido público → aprovação → termo PDF → assinatura digital/física → devolução com avaria → manutenção automática →
-encerramento APTO → reserva para o 1º da fila), além de 401/403 por perfil, refresh/logout com revogação e Swagger
-(15 tags). A consulta de CEP responde 503 quando o ViaCEP não está acessível (comportamento previsto).
+**Estado da build (24/11/2026, após a Onda 2):** ✅ `./gradlew test` com **239 testes verdes** em H2 e também
+contra **PostgreSQL 16** (banco vazio, `V1` + `V2` aplicadas pelo Flyway, `ddl-auto: validate`). Os 3 testes novos
+(`FluxoPontaAPontaIT`) exercitam só pela API HTTP, com login JWT real e commit a cada requisição: pedido público →
+aprovação → termo PDF → assinatura digital → fila sem estoque → devolução DANIFICADO → manutenção corretiva automática
++ ocorrência DANO (bloqueio RN20) → encerramento negado ao Operador e APTO pelo Admin (UC23) → reserva automática para
+o 1º da fila (RN32) → aprovação do pedido em fila; histórico do equipamento; dashboard e relatório CSV com visão
+mascarada para Consulta e auditoria `EXPORT`; renovação pública (UC16); sincronização offline com conflito,
+idempotência e resolução pelo Admin (RN60). A consulta de CEP responde 503 quando o ViaCEP não está acessível
+(comportamento previsto).
 
 **O que funciona hoje em execução (HTTP):** todas as rotas ✅ da seção 6 e as 7 rotinas agendadas.
 
@@ -190,8 +196,7 @@ e `BeneficiaryRestriction`.
 6. **Propostas para o frontend** (fora do `plan.md`): `GET /api/v1/dominios` (enums + descrições, público) e upload de
    fotos `POST /api/v1/arquivos/fotos` (as URLs vão em `photoUrl`, `deliveryPhotoUrl`, `returnPhotoUrl`).
 7. ~~Ajustar `SecurityAndParameterIT.devePermitirRotasPublicasQuandoAnonimo`~~ ✅ agora espera 400/200.
-8. **Onda 2:** teste ponta a ponta (I.2), suíte verde (I.3) e docs (I.4 — `README.md`, `backend/README.md` e
-   `docs/DESCRICAO_DO_PROJETO_E_BACKEND.md` ainda citam Maven, senha `lions123`, prazo de 90 dias e rotas antigas).
+8. ~~**Onda 2:** teste ponta a ponta (I.2), suíte verde (I.3) e docs (I.4)~~ ✅ feito em 24/11/2026.
 9. **Testes das RNs** (adiados por decisão — sem TDD nesta etapa).
 10. ~~**Frente G**~~ ✅ concluída (G.1–G.14).
 
