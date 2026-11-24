@@ -49,6 +49,19 @@ lions:
       notification-retry: "0 5/15 * * * *"    # RN48 — a cada 15 min (defasada 5 min)
       daily-summary: "0 0 7 * * *"            # RN49 — diária, 07:00
       due-date-reminders: "0 0 8 * * *"       # RN46/RF12 — diária, 08:00
+      session-expiration: "0 */5 * * * *"     # RN57 — a cada 5 min
+  notification:
+    # auto = envia pelo provedor configurado do canal (sem provedor → contato manual); manual; simulate (só log)
+    mode: ${LIONS_NOTIFICATION_MODE:auto}
+    email:
+      # Remetente; o servidor SMTP vem de spring.mail.* (SPRING_MAIL_HOST, SPRING_MAIL_PORT, SPRING_MAIL_USERNAME...)
+      from: ${LIONS_NOTIFICATION_EMAIL_FROM:}
+    twilio:
+      # SMS e WhatsApp (https://www.twilio.com). Sem credenciais, esses canais viram contato manual (RN47).
+      account-sid: ${TWILIO_ACCOUNT_SID:}
+      auth-token: ${TWILIO_AUTH_TOKEN:}
+      sms-from: ${TWILIO_SMS_FROM:}
+      whatsapp-from: ${TWILIO_WHATSAPP_FROM:}
   cors:
     # Lista de origens (padrões aceitos, ex.: https://*.lionsmedianeira.org.br)
     allowed-origins:

@@ -82,15 +82,15 @@ Feito:
 - [x] G.5 Script PostgreSQL `V1__init_schema.sql` (Flyway no perfil prod, `ddl-auto: validate`); suíte verde em H2 e em PostgreSQL.
 - [x] G.6 MER ajustado (`docs/banco-de-dados/MER.json`) + diagrama e mapeamento lógico → físico.
 
-A fazer (por frente dona):
-- [ ] G.7 (E) RN34: beneficiário bloqueado pela RN20 — inclusive **termo não assinado** — sai da fila (revoga a decisão 6 do `andamento.md`).
+Ajustes de regra (por frente dona):
+- [x] G.7 (E) RN34: beneficiário bloqueado pela RN20 — inclusive **termo não assinado** — sai da fila (revoga a decisão 6 do `andamento.md`).
 - [x] G.8 (D) RN40: devolução `PRECISA_MANUTENCAO` também gera ocorrência `DANO`.
 - [x] G.9 (C) UC23: encerramento de manutenção só pelo Admin (os dois pareceres).
-- [ ] G.10 (D) UC16: renovação pública pelo beneficiário (`POST /emprestimos/renovacao-publica`, CPF + nascimento + patrimônio, limite de tentativas).
+- [x] G.10 (D) UC16: renovação pública pelo beneficiário (`POST /emprestimos/renovacao-publica`, CPF + nascimento + patrimônio, limite de tentativas).
 - [x] G.11 (E) RF12: aviso de "elegível para renovação" no lembrete de 7 dias.
-- [ ] G.12 (E) RN47: adaptadores de envio real — e-mail (SMTP) e SMS/WhatsApp (provedor configurável); contato manual só como contingência (revoga o padrão `manual` da decisão 4).
-- [ ] G.13 (A) RN57: sessões persistidas (`tb_user_sessions`, migration V2), `SessionExpirationJob` auditando `SESSION_EXPIRED`, revogação persistida.
-- [ ] G.14 (D) RN60/RNF06: `POST /sincronizacao` + conflitos (`tb_sync_operations`, `tb_sync_conflicts`, migration V2/V3).
+- [x] G.12 (E) RN47: adaptadores de envio real — e-mail (SMTP) e SMS/WhatsApp (provedor configurável); contato manual só como contingência (revoga o padrão `manual` da decisão 4).
+- [x] G.13 (A) RN57: sessões persistidas (`tb_user_sessions`, migration V2), `SessionExpirationJob` auditando `SESSION_EXPIRED`, revogação persistida.
+- [x] G.14 (D) RN60/RNF06: `POST /sincronizacao` + conflitos (`tb_sync_operations`, `tb_sync_conflicts`, migration V2).
 
 ## Onda 2 — Integração
 - [ ] I.1 Merge das frentes; resolver conflitos em ports/adapters.

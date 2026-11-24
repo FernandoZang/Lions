@@ -156,8 +156,9 @@ Toda regra listada deve ter teste automatizado.
 - **RF12 [rev. 24/11]** Aviso de **elegível para renovação**: no aviso de 7 dias (início da janela da RN23), se o
   empréstimo cumpre a RN23, a mensagem informa que pode ser renovado e como (UC16); se não cumpre, não menciona renovação.
 - **RN47 [rev. 24/11]** Envio **automático** pelos canais autorizados no consentimento: e-mail (SMTP), SMS e WhatsApp,
-  cada um por um adaptador da porta `NotificationSenderPort`, habilitado por configuração. Sem canal autorizado, ou sem
-  adaptador configurado para o canal, o aviso vira tarefa de contato manual para o Admin (com link wa.me pronto).
+  cada um por um adaptador da porta `NotificationSenderPort`, habilitado por configuração (e-mail: `spring.mail.*` +
+  remetente; SMS/WhatsApp: provedor **Twilio**). Sem canal autorizado, ou sem provedor configurado para o canal, o
+  aviso vira tarefa de contato manual para o Admin (com link wa.me pronto).
 - **RN48** Falha registrada; até 3 tentativas; depois vira contato manual.
 - **RN49** Resumo diário ao Admin: atrasos, reservas expiradas (últimas 24 h), manutenções abertas, preventivas
   vencidas — enviado às 07:00 como notificação interna e consultável em `GET /notificacoes/resumo-diario` (só Admin).
@@ -182,10 +183,16 @@ Toda regra listada deve ter teste automatizado.
   ao reconectar (`POST /sincronizacao`). Cada operação traz um id gerado no dispositivo (idempotência — reenvio não
   duplica) e a data/hora em que foi feita no dispositivo (`occurredAt`); o servidor grava também a hora de recebimento.
 - As operações são aplicadas em ordem de `occurredAt`, com as mesmas regras da operação online.
-- **Conflito** = duas operações incompatíveis sobre o **mesmo equipamento** (ex.: duas retiradas, ou retirada de item
-  que outro operador já emprestou). **Prevalece a de data/hora mais antiga**; a outra é recusada e registrada como
-  conflito para conferência manual (`GET /sincronizacao/conflitos`, `PATCH /sincronizacao/conflitos/{id}/resolver`), e
-  o Admin é notificado.
+- **Conflito** = operação recebida incompatível com um registro já existente sobre o **mesmo equipamento**: retirada
+  de item que já está emprestado, ou devolução de empréstimo já devolvido. **Prevalece a de data/hora mais antiga**
+  (a do dispositivo, quando o registro existente também veio de sincronização). A operação recebida **não é aplicada**
+  e o conflito fica pendente para conferência manual (`GET /sincronizacao/conflitos`,
+  `PATCH /sincronizacao/conflitos/{id}/resolver` — só Admin), indicando qual registro prevalece; o Admin é notificado.
+  Quando o existente é o mais antigo, nada mais precisa mudar; quando a operação offline é a mais antiga, o sistema não
+  desfaz o registro existente sozinho — o Admin corrige (cancelamento/ajuste) e registra a resolução.
+- Cada operação é aplicada na sua própria transação: uma recusa não desfaz as demais do lote. A retirada offline usa a
+  data do dispositivo como data de retirada (sem exigir Admin para a data passada; justificativa automática) e nasce
+  pendente de assinatura (RN21).
 - Operações recusadas por regra de negócio (não por conflito) voltam no resultado do lote com o motivo.
 
 ## 5. Requisitos não funcionais atendidos pelo backend
@@ -201,4 +208,4 @@ Toda regra listada deve ter teste automatizado.
 - Schema físico: `V1__init_schema.sql` (PostgreSQL), aplicado pelo Flyway no perfil `prod`, com `ddl-auto: validate`.
   Mudanças de schema entram como novas migrations (`V2__...`), nunca editando a V1.
 - Nomes físicos em inglês; ids `BIGINT` (o patrimônio `PT-0001` deriva do id).
-- Tabelas previstas para os itens [rev. 24/11]: `tb_user_sessions` (RN57) e `tb_sync_conflicts` (RN60).
+- `V2__frente_g_sessoes_sincronizacao.sql`: `tb_user_sessions` (RN57), `tb_sync_operations` e `tb_sync_conflicts` (RN60).

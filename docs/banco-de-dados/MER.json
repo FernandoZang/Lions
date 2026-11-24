@@ -1999,6 +1999,322 @@
             ],
             "customData": [],
             "linkedData": []
+          },
+          {
+            "id": "lions-ent-101",
+            "class": "ERDEntityBlock3",
+            "textAreas": [
+              {
+                "label": "Name",
+                "text": "tb_sessao_usuario"
+              },
+              {
+                "label": "Field1",
+                "text": "id"
+              },
+              {
+                "label": "Type1",
+                "text": "bigint"
+              },
+              {
+                "label": "Field2",
+                "text": "jti"
+              },
+              {
+                "label": "Type2",
+                "text": "varchar"
+              },
+              {
+                "label": "Field3",
+                "text": "usuario"
+              },
+              {
+                "label": "Type3",
+                "text": "varchar"
+              },
+              {
+                "label": "Field4",
+                "text": "dt_emissao"
+              },
+              {
+                "label": "Type4",
+                "text": "timestamp"
+              },
+              {
+                "label": "Field5",
+                "text": "dt_expiracao"
+              },
+              {
+                "label": "Type5",
+                "text": "timestamp"
+              },
+              {
+                "label": "Field6",
+                "text": "dt_encerramento"
+              },
+              {
+                "label": "Type6",
+                "text": "timestamp"
+              },
+              {
+                "label": "Field7",
+                "text": "motivo_encerramento"
+              },
+              {
+                "label": "Type7",
+                "text": "varchar"
+              }
+            ],
+            "customData": [],
+            "linkedData": []
+          },
+          {
+            "id": "lions-ent-102",
+            "class": "ERDEntityBlock3",
+            "textAreas": [
+              {
+                "label": "Name",
+                "text": "tb_sincronizacao_conflito"
+              },
+              {
+                "label": "Field1",
+                "text": "id"
+              },
+              {
+                "label": "Type1",
+                "text": "bigint"
+              },
+              {
+                "label": "Field2",
+                "text": "id_equipamento"
+              },
+              {
+                "label": "Type2",
+                "text": "bigint"
+              },
+              {
+                "label": "Field3",
+                "text": "id_emprestimo_existente"
+              },
+              {
+                "label": "Type3",
+                "text": "bigint"
+              },
+              {
+                "label": "Field4",
+                "text": "id_operacao_cliente"
+              },
+              {
+                "label": "Type4",
+                "text": "varchar"
+              },
+              {
+                "label": "Field5",
+                "text": "tipo_operacao"
+              },
+              {
+                "label": "Type5",
+                "text": "varchar"
+              },
+              {
+                "label": "Field6",
+                "text": "dt_operacao_recebida"
+              },
+              {
+                "label": "Type6",
+                "text": "timestamp"
+              },
+              {
+                "label": "Field7",
+                "text": "dt_registro_existente"
+              },
+              {
+                "label": "Type7",
+                "text": "timestamp"
+              },
+              {
+                "label": "Field8",
+                "text": "prevalece"
+              },
+              {
+                "label": "Type8",
+                "text": "varchar"
+              },
+              {
+                "label": "Field9",
+                "text": "descricao"
+              },
+              {
+                "label": "Type9",
+                "text": "varchar"
+              },
+              {
+                "label": "Field10",
+                "text": "status"
+              },
+              {
+                "label": "Type10",
+                "text": "varchar"
+              },
+              {
+                "label": "Field11",
+                "text": "usuario"
+              },
+              {
+                "label": "Type11",
+                "text": "varchar"
+              },
+              {
+                "label": "Field12",
+                "text": "nota_resolucao"
+              },
+              {
+                "label": "Type12",
+                "text": "varchar"
+              },
+              {
+                "label": "Field13",
+                "text": "resolvido_por"
+              },
+              {
+                "label": "Type13",
+                "text": "varchar"
+              },
+              {
+                "label": "Field14",
+                "text": "dt_resolucao"
+              },
+              {
+                "label": "Type14",
+                "text": "timestamp"
+              },
+              {
+                "label": "Field15",
+                "text": "dt_cadastro"
+              },
+              {
+                "label": "Type15",
+                "text": "timestamp"
+              }
+            ],
+            "customData": [],
+            "linkedData": []
+          },
+          {
+            "id": "lions-ent-103",
+            "class": "ERDEntityBlock3",
+            "textAreas": [
+              {
+                "label": "Name",
+                "text": "tb_sincronizacao_operacao"
+              },
+              {
+                "label": "Field1",
+                "text": "id"
+              },
+              {
+                "label": "Type1",
+                "text": "bigint"
+              },
+              {
+                "label": "Field2",
+                "text": "id_operacao_cliente"
+              },
+              {
+                "label": "Type2",
+                "text": "varchar"
+              },
+              {
+                "label": "Field3",
+                "text": "tipo"
+              },
+              {
+                "label": "Type3",
+                "text": "varchar"
+              },
+              {
+                "label": "Field4",
+                "text": "id_beneficiario"
+              },
+              {
+                "label": "Type4",
+                "text": "bigint"
+              },
+              {
+                "label": "Field5",
+                "text": "id_equipamento"
+              },
+              {
+                "label": "Type5",
+                "text": "bigint"
+              },
+              {
+                "label": "Field6",
+                "text": "id_emprestimo"
+              },
+              {
+                "label": "Type6",
+                "text": "bigint"
+              },
+              {
+                "label": "Field7",
+                "text": "dt_operacao"
+              },
+              {
+                "label": "Type7",
+                "text": "timestamp"
+              },
+              {
+                "label": "Field8",
+                "text": "dt_recebimento"
+              },
+              {
+                "label": "Type8",
+                "text": "timestamp"
+              },
+              {
+                "label": "Field9",
+                "text": "usuario"
+              },
+              {
+                "label": "Type9",
+                "text": "varchar"
+              },
+              {
+                "label": "Field10",
+                "text": "resultado"
+              },
+              {
+                "label": "Type10",
+                "text": "varchar"
+              },
+              {
+                "label": "Field11",
+                "text": "mensagem"
+              },
+              {
+                "label": "Type11",
+                "text": "varchar"
+              },
+              {
+                "label": "Field12",
+                "text": "id_emprestimo_resultante"
+              },
+              {
+                "label": "Type12",
+                "text": "bigint"
+              },
+              {
+                "label": "Field13",
+                "text": "id_conflito"
+              },
+              {
+                "label": "Type13",
+                "text": "bigint"
+              }
+            ],
+            "customData": [],
+            "linkedData": []
           }
         ],
         "lines": [
@@ -2375,6 +2691,62 @@
             "endpoint2": {
               "style": "CFN ERD Many Arrow",
               "connectedTo": "lions-ent-010"
+            },
+            "textAreas": [],
+            "customData": [],
+            "linkedData": []
+          },
+          {
+            "id": "lions-rel-101",
+            "endpoint1": {
+              "style": "CFN ERD One Arrow",
+              "connectedTo": "rThD1vqk0G4I"
+            },
+            "endpoint2": {
+              "style": "CFN ERD Many Arrow",
+              "connectedTo": "lions-ent-102"
+            },
+            "textAreas": [],
+            "customData": [],
+            "linkedData": []
+          },
+          {
+            "id": "lions-rel-102",
+            "endpoint1": {
+              "style": "CFN ERD One Arrow",
+              "connectedTo": "qriDmpY34QqI"
+            },
+            "endpoint2": {
+              "style": "CFN ERD Many Arrow",
+              "connectedTo": "lions-ent-102"
+            },
+            "textAreas": [],
+            "customData": [],
+            "linkedData": []
+          },
+          {
+            "id": "lions-rel-103",
+            "endpoint1": {
+              "style": "CFN ERD One Arrow",
+              "connectedTo": "qriDmpY34QqI"
+            },
+            "endpoint2": {
+              "style": "CFN ERD Many Arrow",
+              "connectedTo": "lions-ent-103"
+            },
+            "textAreas": [],
+            "customData": [],
+            "linkedData": []
+          },
+          {
+            "id": "lions-rel-104",
+            "endpoint1": {
+              "style": "CFN ERD One Arrow",
+              "connectedTo": "lions-ent-102"
+            },
+            "endpoint2": {
+              "style": "CFN ERD Many Arrow",
+              "connectedTo": "lions-ent-103"
             },
             "textAreas": [],
             "customData": [],

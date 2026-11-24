@@ -1,6 +1,7 @@
 package org.lions.backend.infrastructure.scheduler;
 
 import org.junit.jupiter.api.Test;
+import org.lions.backend.application.service.auth.SessionService;
 import org.lions.backend.application.service.loan.LoanOverdueService;
 import org.lions.backend.application.service.maintenance.PreventiveMaintenanceService;
 import org.lions.backend.application.service.notification.DailySummaryService;
@@ -25,8 +26,10 @@ class ScheduledJobsTest {
             .withBean(PreventiveMaintenanceService.class, () -> mock(PreventiveMaintenanceService.class))
             .withBean(DueDateReminderService.class, () -> mock(DueDateReminderService.class))
             .withBean(DailySummaryService.class, () -> mock(DailySummaryService.class))
+            .withBean(SessionService.class, () -> mock(SessionService.class))
             .withUserConfiguration(OverdueLoanJob.class, ReservationExpirationJob.class, NotificationRetryJob.class,
-                    PreventiveMaintenanceJob.class, DueDateReminderJob.class, DailySummaryJob.class);
+                    PreventiveMaintenanceJob.class, DueDateReminderJob.class, DailySummaryJob.class,
+                    SessionExpirationJob.class);
 
     @Test
     void deveRegistrarJobsQuandoAgendamentoHabilitado() {
@@ -37,6 +40,7 @@ class ScheduledJobsTest {
             assertThat(context).hasSingleBean(PreventiveMaintenanceJob.class);
             assertThat(context).hasSingleBean(DueDateReminderJob.class);
             assertThat(context).hasSingleBean(DailySummaryJob.class);
+            assertThat(context).hasSingleBean(SessionExpirationJob.class);
         });
     }
 
@@ -54,6 +58,7 @@ class ScheduledJobsTest {
             assertThat(context).doesNotHaveBean(PreventiveMaintenanceJob.class);
             assertThat(context).doesNotHaveBean(DueDateReminderJob.class);
             assertThat(context).doesNotHaveBean(DailySummaryJob.class);
+            assertThat(context).doesNotHaveBean(SessionExpirationJob.class);
         });
     }
 
@@ -61,7 +66,7 @@ class ScheduledJobsTest {
     void deveTerCronValidoQuandoUsaPadrao() {
         for (String cron : new String[]{OverdueLoanJob.DEFAULT_CRON, ReservationExpirationJob.DEFAULT_CRON,
                 NotificationRetryJob.DEFAULT_CRON, PreventiveMaintenanceJob.DEFAULT_CRON, DueDateReminderJob.DEFAULT_CRON,
-                DailySummaryJob.DEFAULT_CRON}) {
+                DailySummaryJob.DEFAULT_CRON, SessionExpirationJob.DEFAULT_CRON}) {
             assertThat(CronExpression.isValidExpression(cron)).as(cron).isTrue();
         }
     }

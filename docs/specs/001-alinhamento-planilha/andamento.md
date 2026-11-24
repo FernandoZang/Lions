@@ -16,18 +16,18 @@
 | Onda | Situação |
 |---|---|
 | **Onda 0 — Fundação** | ✅ Concluída (já estava pronta na branch). Verificado antes das mudanças: build ok e **172 testes verdes**. |
-| **Frente G — Alinhamento planilha/MER** | 🟡 G.1–G.6 (modelo, V1, MER), G.8 (RN40), G.9 (UC23) e G.11 (RF12) feitos; G.7, G.10 e G.12–G.14 pendentes. |
+| **Frente G — Alinhamento planilha/MER** | ✅ G.1–G.14 concluídas (modelo, V1/V2, MER e ajustes de regra da revisão). |
 | **Onda 1 — Frentes A–F** | 🟡 **Parcial.** Camada de aplicação (serviços, DTOs, portas e adaptadores) e **controllers REST** das frentes **A, B, C, D e E** prontos. Frente **F** (dashboard/relatórios), rotinas agendadas e régua de lembretes/resumo diário **não iniciadas**. |
 | **Onda 2 — Integração** | ❌ Não iniciada. |
 
-**Estado da build (24/11/2026, após jobs, E.4, G.8, G.9 e G.11):** ✅ `./gradlew build` ok, **207 testes verdes** em H2 e também
+**Estado da build (24/11/2026, após a Frente G):** ✅ `./gradlew build` ok, **227 testes verdes** em H2 e também
 contra **PostgreSQL 16** com a `V1` aplicada pelo Flyway e `ddl-auto: validate` (ainda sem testes da maioria das RNs novas). Os 14 controllers foram verificados subindo a aplicação e executando o fluxo completo pela API
 (pedido público → aprovação → termo PDF → assinatura digital/física → devolução com avaria → manutenção automática →
 encerramento APTO → reserva para o 1º da fila), além de 401/403 por perfil, refresh/logout com revogação e Swagger
 (15 tags). A consulta de CEP responde 503 quando o ViaCEP não está acessível (comportamento previsto).
 
 **O que funciona hoje em execução (HTTP):** todas as rotas ✅ da seção 6, e as 6 rotinas agendadas. Ainda não
-existem: dashboard e relatórios (Frente F) e os itens pendentes da Frente G.
+existem: dashboard e relatórios (Frente F).
 
 ---
 
@@ -149,13 +149,14 @@ e `BeneficiaryRestriction`.
    outro, em manutenção, baixado). Cobre a corrida concorrente da RN28 (lock pessimista + `@Version`).
 3. **Regras de perfil dentro do caso de uso → 403** (`ForbiddenOperationException`): empréstimo retroativo (RN22), ajuste
    de custo (RN41), encerramento INSERVÍVEL (RN37). Demais permissões ficam no `@PreAuthorize` dos controllers.
-4. *(Revogada na revisão de 24/11 — RN47: envio automático real; contato manual só como contingência. Tarefa G.12.)*
+4. *(Revogada na revisão de 24/11 — G.12: modo padrão agora é `auto` — e-mail por SMTP e SMS/WhatsApp pela Twilio
+   quando configurados; contato manual só como contingência. `manual` e `simulate` continuam disponíveis.)*
    **Notificações sem provedor real:** propriedade `lions.notification.mode` — `manual` (padrão: toda notificação ao
    beneficiário vira **tarefa de contato manual com link wa.me pronto**, o botão "Lembrar no WhatsApp") ou `simulate`
    (só registra em log e marca como ENVIADA). Retentativas (RN48) passam a valer quando um provedor real for plugado na
    porta `NotificationSenderPort`.
 5. **Deduplicação sem empréstimo** via `Notification.referenceKey` (ex.: preventiva uma vez por item/mês — `EQUIPMENT:12`).
-6. *(Revogada na revisão de 24/11 — RN34: termo pendente também remove da fila. Tarefa G.7.)*
+6. *(Revogada na revisão de 24/11 — G.7: termo pendente também remove da fila, RN34.)*
    **`BeneficiaryRestriction`** ganhou `hasOverdueLoan`, `hasPendingSignature`, `inactive` e `removesFromWaitlist()`:
    termo pendente de assinatura **bloqueia** novas entradas (RN20), mas **não remove** quem já está na fila; atraso,
    ocorrência aberta e cadastro inativo removem (RN34). O construtor original de 4 argumentos foi mantido.
@@ -193,8 +194,7 @@ e `BeneficiaryRestriction`.
 8. **Onda 2:** teste ponta a ponta (I.2), suíte verde (I.3) e docs (I.4 — `README.md`, `backend/README.md` e
    `docs/DESCRICAO_DO_PROJETO_E_BACKEND.md` ainda citam Maven, senha `lions123`, prazo de 90 dias e rotas antigas).
 9. **Testes das RNs** (adiados por decisão — sem TDD nesta etapa).
-10. **Frente G (revisão planilha/MER):** G.7–G.14 do `tasks.md` — RN34, RN40, UC23, UC16, aviso de renovação (RF12),
-    envio real (RN47), sessões (RN57) e sincronização offline (RN60).
+10. ~~**Frente G**~~ ✅ concluída (G.1–G.14).
 
 > **Ambiente:** o toolchain do Gradle exige **JDK 21** (`gradle-daemon-jvm.properties`). Sem JDK 21 instalado a build
 > não inicia. Sugestão: instalar o Temurin 21 ou adicionar o plugin `org.gradle.toolchains.foojay-resolver-convention`
@@ -212,7 +212,8 @@ e `BeneficiaryRestriction`.
 - **Base URL:** `http://localhost:8080/api/v1` (dev). Swagger: `/swagger-ui.html`; OpenAPI: `/v3/api-docs`.
 - **Autenticação:** JWT HS256 no header `Authorization: Bearer <token>`. Validade **30 min** (`expiresIn` em segundos
   e `expiresAt` em UTC na resposta do login). O frontend deve chamar `POST /auth/refresh` enquanto houver atividade
-  (ex.: faltando < 5 min) — sem atividade a sessão expira (RN57). `POST /auth/logout` revoga o token.
+  (ex.: faltando < 5 min) — sem atividade a sessão expira (RN57). `POST /auth/logout` encerra a sessão. Sessões são
+  persistidas: token de sessão encerrada (logout, renovação, usuário inativado, expiração) recebe 401.
 - **Perfis:** `ROLE_ADMIN` (A), `ROLE_OPERATOR` (O), `ROLE_VIEWER` (V); P = público (sem token).
 - **Respostas de erro** no formato *Problem Details* (RFC 7807), `Content-Type: application/problem+json`:
   ```json
@@ -331,6 +332,10 @@ Só CPF (RN04, sem `documentType`); `number` aceita "S/N". Menor de 18 anos ou `
 |---|---|---|---|
 | `POST /emprestimos` | A,O (retroativo só A) | `{beneficiaryId, equipmentId, orderId?, loanDate?, retroactiveJustification?, deliveryNotes?, deliveryPhotoUrl?}` → 201 `LoanResponse` (status `PENDENTE_ASSINATURA`) | ✅ |
 | `GET /emprestimos?status&beneficiarioId&equipamentoId&inicio&fim&tipo` | A,O | → `LoanResponse[]` | ✅ |
+| `POST /emprestimos/renovacao-publica` | **P** | `{cpf, birthDate, patrimonyNumber}` → `{patrimonyNumber, equipmentTypeDescription, previousExpectedReturnDate, expectedReturnDate, renewalCount, maxRenewals}` (UC16; 422 genérico se não confere; 429 após 5 tentativas/15 min por IP ou CPF) | ✅ |
+| `POST /sincronizacao` | A,O | `{operations: [{clientOperationId, type: RETIRADA\|DEVOLUCAO\|RENOVACAO, occurredAt, beneficiaryId?, equipmentId?, loanId?, returnCondition?, damageDescription?, deliveryNotes?}]}` (máx. 200) → `[{clientOperationId, type, status: APLICADA\|RECUSADA\|CONFLITO\|DUPLICADA, message, loanId, conflictId}]` (RN60) | ✅ |
+| `GET /sincronizacao/conflitos?status` · `GET /sincronizacao/conflitos/{id}` | A,O | → `SyncConflictResponse[]` / `SyncConflictResponse` | ✅ |
+| `PATCH /sincronizacao/conflitos/{id}/resolver` | A | `{note}` → `SyncConflictResponse` | ✅ |
 | `GET /emprestimos/{id}` | A,O | → `LoanResponse` com `renewals[]`, `returnInfo`, `adjustments[]`, `canRenew`, `renewalBlockers[]`, `whatsappLink` | ✅ |
 | `GET /emprestimos/{id}/termo` | A,O | → `application/pdf` (RN61) | ✅ |
 | `GET /emprestimos/{id}/termo-assinado` *(acréscimo)* | A,O | → PDF/JPG/PNG digitalizado | ✅ |
