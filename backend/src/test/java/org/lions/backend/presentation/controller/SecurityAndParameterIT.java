@@ -82,10 +82,10 @@ class SecurityAndParameterIT {
     @Test
     void devePermitirRotasPublicasQuandoAnonimo() throws Exception {
         mockMvc.perform(get("/actuator/health")).andExpect(status().isOk());
-        // Rotas públicas ainda sem controller (Onda 1) não podem responder 401/403.
+        // Rotas públicas respondem sem token: o pedido vazio cai na validação (400), não em 401/403.
         mockMvc.perform(post("/api/v1/pedidos").contentType(MediaType.APPLICATION_JSON).content("{}"))
-                .andExpect(status().isNotFound());
-        mockMvc.perform(get("/api/v1/ajuda/publico")).andExpect(status().isNotFound());
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/v1/ajuda/publico")).andExpect(status().isOk());
     }
 
     @Test
