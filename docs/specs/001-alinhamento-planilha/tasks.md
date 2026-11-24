@@ -93,10 +93,14 @@ Ajustes de regra (por frente dona):
 - [x] G.14 (D) RN60/RNF06: `POST /sincronizacao` + conflitos (`tb_sync_operations`, `tb_sync_conflicts`, migration V2).
 
 ## Onda 2 — Integração
-- [ ] I.1 Merge das frentes; resolver conflitos em ports/adapters.
-- [ ] I.2 Teste de integração ponta a ponta: pedido → aprovação → assinatura → devolução com avaria → manutenção → APTO → reserva para a fila.
-- [ ] I.3 `./gradlew test` verde.
-- [ ] I.4 Atualizar `README.md`, `backend/README.md` e `docs/DESCRICAO_DO_PROJETO_E_BACKEND.md`.
+- [x] I.1 Merge das frentes; resolver conflitos em ports/adapters. (Frentes A–G já mergeadas na `wip/onda1-servicos`
+  pelos PRs #1–#3, sem conflitos pendentes; removidos 3 imports sem uso. Sem classes órfãs: as não referenciadas são
+  beans do Spring ou entidades fora da spec mantidas de propósito.)
+- [x] I.2 Teste de integração ponta a ponta: pedido → aprovação → assinatura → devolução com avaria → manutenção → APTO → reserva para a fila.
+  (`presentation/controller/FluxoPontaAPontaIT`, só pela API com JWT real e sem `@Transactional`; cobre também termo
+  PDF, ocorrência DANO, UC23, renovação pública UC16, sincronização com conflito RN60, dashboard e relatório CSV.)
+- [x] I.3 `./gradlew test` verde. (239 testes em H2 e em PostgreSQL 16 com Flyway + `ddl-auto: validate`.)
+- [x] I.4 Atualizar `README.md`, `backend/README.md` e `docs/DESCRICAO_DO_PROJETO_E_BACKEND.md`.
 
 ## Definição de pronto (por frente)
 - Compila, `./gradlew test` verde no clone.
