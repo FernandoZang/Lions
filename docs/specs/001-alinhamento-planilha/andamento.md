@@ -1,6 +1,9 @@
 # Andamento da implementação — Spec 001 (backend)
 
 > **Atualizado em 24/11/2026:** controllers REST da Onda 1 prontos (ver seções 1, 2 e 5).
+> **Revisão de 24/11/2026 (alinhamento planilha/MER):** spec revisada (itens **[rev. 24/11]** do `spec.md`), MER
+> ajustado (`docs/banco-de-dados/`), script PostgreSQL `V1__init_schema.sql`, e no código: só CPF, endereço em tabela
+> própria, tipos de equipamento com prazo, ano/especificações do equipamento. Ver Frente G do `tasks.md`.
 > **Snapshot original:** 18/11/2026 · branch `wip/onda1-servicos` (criada a partir de `new/one` @ `baa36fa`).
 > Documento gerado quando a execução foi **interrompida no meio da Onda 1**. Descreve o que está pronto, o que falta,
 > as decisões tomadas e o **contrato de API previsto** para o frontend.
@@ -13,11 +16,12 @@
 | Onda | Situação |
 |---|---|
 | **Onda 0 — Fundação** | ✅ Concluída (já estava pronta na branch). Verificado antes das mudanças: build ok e **172 testes verdes**. |
+| **Frente G — Alinhamento planilha/MER** | 🟡 G.1–G.6 feitos (modelo, V1, MER); G.7–G.14 pendentes (ajustes de regra da revisão). |
 | **Onda 1 — Frentes A–F** | 🟡 **Parcial.** Camada de aplicação (serviços, DTOs, portas e adaptadores) e **controllers REST** das frentes **A, B, C, D e E** prontos. Frente **F** (dashboard/relatórios), rotinas agendadas e régua de lembretes/resumo diário **não iniciadas**. |
 | **Onda 2 — Integração** | ❌ Não iniciada. |
 
-**Estado da build (24/11/2026):** ✅ `./gradlew build` ok, **172 testes verdes** (os mesmos da Onda 0 — ainda sem
-testes das RNs novas). Os 14 controllers foram verificados subindo a aplicação e executando o fluxo completo pela API
+**Estado da build (24/11/2026, após a Frente G):** ✅ `./gradlew build` ok, **181 testes verdes** em H2 e também
+contra **PostgreSQL 16** com a `V1` aplicada pelo Flyway e `ddl-auto: validate` (ainda sem testes da maioria das RNs novas). Os 14 controllers foram verificados subindo a aplicação e executando o fluxo completo pela API
 (pedido público → aprovação → termo PDF → assinatura digital/física → devolução com avaria → manutenção automática →
 encerramento APTO → reserva para o 1º da fila), além de 401/403 por perfil, refresh/logout com revogação e Swagger
 (15 tags). A consulta de CEP responde 503 quando o ViaCEP não está acessível (comportamento previsto).
@@ -145,12 +149,14 @@ e `BeneficiaryRestriction`.
    outro, em manutenção, baixado). Cobre a corrida concorrente da RN28 (lock pessimista + `@Version`).
 3. **Regras de perfil dentro do caso de uso → 403** (`ForbiddenOperationException`): empréstimo retroativo (RN22), ajuste
    de custo (RN41), encerramento INSERVÍVEL (RN37). Demais permissões ficam no `@PreAuthorize` dos controllers.
-4. **Notificações sem provedor real:** propriedade `lions.notification.mode` — `manual` (padrão: toda notificação ao
+4. *(Revogada na revisão de 24/11 — RN47: envio automático real; contato manual só como contingência. Tarefa G.12.)*
+   **Notificações sem provedor real:** propriedade `lions.notification.mode` — `manual` (padrão: toda notificação ao
    beneficiário vira **tarefa de contato manual com link wa.me pronto**, o botão "Lembrar no WhatsApp") ou `simulate`
    (só registra em log e marca como ENVIADA). Retentativas (RN48) passam a valer quando um provedor real for plugado na
    porta `NotificationSenderPort`.
 5. **Deduplicação sem empréstimo** via `Notification.referenceKey` (ex.: preventiva uma vez por item/mês — `EQUIPMENT:12`).
-6. **`BeneficiaryRestriction`** ganhou `hasOverdueLoan`, `hasPendingSignature`, `inactive` e `removesFromWaitlist()`:
+6. *(Revogada na revisão de 24/11 — RN34: termo pendente também remove da fila. Tarefa G.7.)*
+   **`BeneficiaryRestriction`** ganhou `hasOverdueLoan`, `hasPendingSignature`, `inactive` e `removesFromWaitlist()`:
    termo pendente de assinatura **bloqueia** novas entradas (RN20), mas **não remove** quem já está na fila; atraso,
    ocorrência aberta e cadastro inativo removem (RN34). O construtor original de 4 argumentos foi mantido.
 7. **Pedido público:** se já existe beneficiário **ativo** com o documento, o pedido é vinculado a ele **sem alterar o
@@ -181,7 +187,8 @@ e `BeneficiaryRestriction`.
 3. **E.4:** serviço da régua de lembretes (RN46: 7 dias, 1 dia, no dia, a cada 3 dias de atraso, dedupe diário) e do
    resumo diário (RN49) + `GET /notificacoes/resumo-diario`.
 4. **Frente F:** `DashboardService` (RN54–RN56) e `ReportService` (CSV/PDF, mascaramento p/ Consulta, auditoria `EXPORT`).
-5. **Configuração:** `lions.notification.mode` e `spring.servlet.multipart.max-file-size/max-request-size` no
+5. ~~**Banco:** migration Flyway~~ ✅ `V1__init_schema.sql` (PostgreSQL) — ver `docs/banco-de-dados/README.md`.
+   **Configuração:** `lions.notification.mode` e `spring.servlet.multipart.max-file-size/max-request-size` no
    `application.yml`; seed de ajuda no perfil `dev`.
 6. **Propostas para o frontend** (fora do `plan.md`): `GET /api/v1/dominios` (enums + descrições, público) e upload de
    fotos `POST /api/v1/arquivos/fotos` (as URLs vão em `photoUrl`, `deliveryPhotoUrl`, `returnPhotoUrl`).
@@ -189,6 +196,8 @@ e `BeneficiaryRestriction`.
 8. **Onda 2:** teste ponta a ponta (I.2), suíte verde (I.3) e docs (I.4 — `README.md`, `backend/README.md` e
    `docs/DESCRICAO_DO_PROJETO_E_BACKEND.md` ainda citam Maven, senha `lions123`, prazo de 90 dias e rotas antigas).
 9. **Testes das RNs** (adiados por decisão — sem TDD nesta etapa).
+10. **Frente G (revisão planilha/MER):** G.7–G.14 do `tasks.md` — RN34, RN40, UC23, UC16, aviso de renovação (RF12),
+    envio real (RN47), sessões (RN57) e sincronização offline (RN60).
 
 > **Ambiente:** o toolchain do Gradle exige **JDK 21** (`gradle-daemon-jvm.properties`). Sem JDK 21 instalado a build
 > não inicia. Sugestão: instalar o Temurin 21 ou adicionar o plugin `org.gradle.toolchains.foojay-resolver-convention`
@@ -255,8 +264,8 @@ e `BeneficiaryRestriction`.
 #### Beneficiários, solicitações e CEP (RF02, RF09)
 | Método e rota | Perfis | Corpo → Resposta | Status |
 |---|---|---|---|
-| `POST /beneficiarios` | A,O | `BeneficiaryRequest` → 201 `BeneficiaryResponse` (409 + `existingId` se documento ativo duplicado) | ✅ |
-| `GET /beneficiarios?nome&documento&ativo` | A,O | → `BeneficiarySummaryResponse[]` (documento mascarado) | ✅ |
+| `POST /beneficiarios` | A,O | `BeneficiaryRequest` → 201 `BeneficiaryResponse` (409 + `existingId` se CPF ativo duplicado) | ✅ |
+| `GET /beneficiarios?nome&documento&ativo` | A,O | → `BeneficiarySummaryResponse[]` (`maskedCpf`; `documento` = CPF com ou sem máscara) | ✅ |
 | `GET /beneficiarios/{id}` | A,O | → `BeneficiaryResponse` | ✅ |
 | `PUT /beneficiarios/{id}` | A,O | `BeneficiaryRequest` (consentimento ignorado) → `BeneficiaryResponse` | ✅ |
 | `PUT /beneficiarios/{id}/consentimento` | A,O | `{consentGranted:true, notificationChannels[], consentGivenBy?}` → `BeneficiaryResponse` | ✅ |
@@ -276,18 +285,19 @@ e `BeneficiaryRestriction`.
 `BeneficiaryRequest` (RN04–RN07):
 ```json
 {
-  "fullName": "Maria Aparecida da Silva", "documentType": "CPF", "documentNumber": "529.982.247-25",
+  "fullName": "Maria Aparecida da Silva", "cpf": "529.982.247-25",
   "birthDate": "1950-04-12", "phone": "(45) 99999-1234", "email": null,
   "cep": "85884-000", "street": "Rua Argentina", "number": "100", "complement": null,
   "neighborhood": "Centro", "city": "Medianeira", "state": "PR",
   "alternativeContactName": "João da Silva", "alternativeContactPhone": "(45) 98888-0000",
   "alternativeContactRelationship": "Filho",
-  "legallyIncapable": false, "legalGuardianName": null, "legalGuardianDocument": null,
-  "legalGuardianPhone": null, "legalGuardianRelationship": null, "notes": null,
+  "legallyIncapable": false, "legalGuardianName": null, "legalGuardianCpf": null,
+  "legalGuardianPhone": null, "legalGuardianEmail": null, "legalGuardianRelationship": null, "notes": null,
   "consentGranted": true, "consentGivenBy": null, "notificationChannels": ["WHATSAPP"]
 }
 ```
-Menor de 18 anos ou `legallyIncapable=true` exige `legalGuardianName` + `legalGuardianDocument` (RN06).
+Só CPF (RN04, sem `documentType`); `number` aceita "S/N". Menor de 18 anos ou `legallyIncapable=true` exige
+`legalGuardianName` + `legalGuardianCpf` válido (RN06). Respostas trazem `cpf`/`maskedCpf` (antes `documentNumber`/`maskedDocument`).
 
 `LoanOrderCreateRequest` (formulário público em 3 etapas):
 ```json
@@ -299,10 +309,12 @@ Menor de 18 anos ou `legallyIncapable=true` exige `legalGuardianName` + `legalGu
 #### Equipamentos, QR Code e manutenção (RF03, RF04, RF08)
 | Método e rota | Perfis | Corpo → Resposta | Status |
 |---|---|---|---|
-| `POST /equipamentos` | A,O | `{type, size?, condition, notes?, photoUrl?}` → 201 `EquipmentResponse` (patrimônio `PT-0001` gerado) | ✅ |
+| `GET /tipos-equipamento` *(rev. 24/11)* | A,O,V | → `[{code, description, loanDays, effectiveLoanDays, updatedBy, updatedAt}]` | ✅ |
+| `PUT /tipos-equipamento/{codigo}` *(rev. 24/11)* | A | `{description, loanDays?}` (nulo = prazo padrão) → `EquipmentTypeResponse` | ✅ |
+| `POST /equipamentos` | A,O | `{type, size?, manufactureYear?, specifications?: [{name, value}], condition, notes?, photoUrl?}` → 201 `EquipmentResponse` (patrimônio `PT-0001` gerado) | ✅ |
 | `GET /equipamentos?status&tipo&condicao` | A,O,V | → `EquipmentResponse[]` | ✅ |
 | `GET /equipamentos/{id}` · `GET /equipamentos/patrimonio/{numero}` | A,O,V | → `EquipmentResponse` | ✅ |
-| `PUT /equipamentos/{id}` | A,O | `{type?, size?, condition?, notes?, photoUrl?}` → `EquipmentResponse` | ✅ |
+| `PUT /equipamentos/{id}` | A,O | `{type?, size?, manufactureYear?, specifications?, condition?, notes?, photoUrl?}` (`specifications` substitui a lista) → `EquipmentResponse` | ✅ |
 | `POST /equipamentos/{id}/baixa` | A | `{reason: INSERVIVEL\|PERDA\|FURTO\|DOACAO, notes?}` → `EquipmentResponse` | ✅ |
 | `GET /equipamentos/{id}/qrcode?tamanho=300` | A,O | → `image/png` (conteúdo = número de patrimônio) | ✅ |
 | `GET /equipamentos/leitura?codigo=PT-0001` | A,O | → `{equipment, availableOperations[], currentLoanId, currentBeneficiaryName, expectedReturnDate, openMaintenanceId, reservedForBeneficiaryName, ...}` | ✅ |
@@ -311,7 +323,7 @@ Menor de 18 anos ou `legallyIncapable=true` exige `legalGuardianName` + `legalGu
 | `GET /manutencoes?status&equipamentoId&tipo` · `GET /manutencoes/{id}` | A,O | → `MaintenanceResponse[]` / `MaintenanceResponse` | ✅ |
 | `PUT /manutencoes/{id}` *(acréscimo)* | A,O | `{defectDescription?, technicalResponsible?}` (só em andamento) | ✅ |
 | `POST /manutencoes/{id}/custos` | A,O (ajuste só A) | `{type: PECA\|SERVICO, description, partReplaced?, amount, adjustment?, adjustmentReason?}` | ✅ |
-| `POST /manutencoes/{id}/encerrar` | A,O (INSERVIVEL só A) | `{verdict: APTO\|INSERVIVEL, notes?}` → `MaintenanceResponse` | ✅ |
+| `POST /manutencoes/{id}/encerrar` | A,O (INSERVIVEL só A) — *rev. 24/11: só A (UC23), G.9* | `{verdict: APTO\|INSERVIVEL, notes?}` → `MaintenanceResponse` | ✅ |
 | `GET /manutencoes/preventivas-pendentes` | A,O | → `[{equipmentId, patrimonyNumber, type, lastMaintenanceDate, loanCycles, reason}]` | ✅ |
 
 `availableOperations` (RN15): `EMPRESTAR`, `REGISTRAR_ASSINATURA`, `REGISTRAR_DEVOLUCAO`, `RENOVAR`, `ABRIR_MANUTENCAO`,
@@ -363,7 +375,7 @@ signedDocumentAvailable, overdue, daysOverdue, dueSoon, returnedAt, cancelReason
 | `POST /ajuda` · `PUT /ajuda/{id}` · `PATCH /ajuda/{id}/inativar` · `/ativar` | A | `{type, title, content, keywords?, audiences[], displayOrder?}` | ✅ |
 | `GET /assistente/sugestoes-alocacao` | A | → `{generatedAt, notice, suggestions[], attention[], summary[]}` (só sugere — RN50) | ✅ |
 | `GET /assistente/perguntas?q=` | **P** | → `{question, answers[{id, type, title, content, score}], message}` | ✅ |
-| `GET /parametros` · `PUT /parametros/{chave}` | A | `{value}` → `SystemParameterResponse` | ✅ |
+| `GET /parametros` · `PUT /parametros/{chave}` | A | `{value}` → `SystemParameterResponse` (prazo por tipo saiu daqui: ver `/tipos-equipamento`) | ✅ |
 | `GET /dominios` *(proposta)* | **P** | enums + descrições para selects | ❌ |
 
 ### 6.3 Fluxos principais (sequência de chamadas)

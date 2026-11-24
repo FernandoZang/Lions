@@ -137,9 +137,9 @@ class SecurityAndParameterIT {
     void deveListarParametrosQuandoAdmin() throws Exception {
         mockMvc.perform(get(PARAMS))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(17))
+                .andExpect(jsonPath("$.length()").value(12))
                 .andExpect(jsonPath("$[*].key", org.hamcrest.Matchers.hasItem("loan.max-renewals")))
-                .andExpect(jsonPath("$[*].key", org.hamcrest.Matchers.hasItem("loan.days.CADEIRA_DE_RODAS")))
+                .andExpect(jsonPath("$[*].key", org.hamcrest.Matchers.hasItem("loan.default-days")))
                 .andExpect(jsonPath("$[?(@.key == 'loan.max-renewals')].value", org.hamcrest.Matchers.contains("2")));
     }
 

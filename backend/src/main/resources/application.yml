@@ -3,7 +3,7 @@ spring:
     name: lions-backend
   profiles:
     active: dev
-  # Migrations aguardam o MER final; enquanto não houver scripts o schema é gerado pelo Hibernate (ddl-auto)
+  # Flyway só no perfil prod (PostgreSQL, db/migration); dev/teste usam H2 com schema gerado pelo Hibernate
   flyway:
     enabled: false
 
