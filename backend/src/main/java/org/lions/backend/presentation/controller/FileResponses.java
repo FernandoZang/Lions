@@ -13,6 +13,15 @@ final class FileResponses {
     private FileResponses() {
     }
 
+    static ResponseEntity<byte[]> attachment(byte[] content, String contentType, String fileName) {
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment().filename(fileName, StandardCharsets.UTF_8).build().toString())
+                .contentLength(content.length)
+                .body(content);
+    }
+
     static ResponseEntity<byte[]> inline(byte[] content, String contentType, String fileName) {
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))

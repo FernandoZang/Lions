@@ -17,17 +17,16 @@
 |---|---|
 | **Onda 0 — Fundação** | ✅ Concluída (já estava pronta na branch). Verificado antes das mudanças: build ok e **172 testes verdes**. |
 | **Frente G — Alinhamento planilha/MER** | ✅ G.1–G.14 concluídas (modelo, V1/V2, MER e ajustes de regra da revisão). |
-| **Onda 1 — Frentes A–F** | 🟡 **Parcial.** Camada de aplicação (serviços, DTOs, portas e adaptadores) e **controllers REST** das frentes **A, B, C, D e E** prontos. Frente **F** (dashboard/relatórios), rotinas agendadas e régua de lembretes/resumo diário **não iniciadas**. |
+| **Onda 1 — Frentes A–F** | ✅ **Concluída.** Serviços e controllers REST das frentes A–F, as 7 rotinas agendadas, régua de lembretes, resumo diário, dashboard e relatórios. Pendente só o seed de ajuda em `dev` (A.3). |
 | **Onda 2 — Integração** | ❌ Não iniciada. |
 
-**Estado da build (24/11/2026, após a Frente G):** ✅ `./gradlew build` ok, **227 testes verdes** em H2 e também
+**Estado da build (24/11/2026, após as Frentes G e F):** ✅ `./gradlew build` ok, **236 testes verdes** em H2 e também
 contra **PostgreSQL 16** com a `V1` aplicada pelo Flyway e `ddl-auto: validate` (ainda sem testes da maioria das RNs novas). Os 14 controllers foram verificados subindo a aplicação e executando o fluxo completo pela API
 (pedido público → aprovação → termo PDF → assinatura digital/física → devolução com avaria → manutenção automática →
 encerramento APTO → reserva para o 1º da fila), além de 401/403 por perfil, refresh/logout com revogação e Swagger
 (15 tags). A consulta de CEP responde 503 quando o ViaCEP não está acessível (comportamento previsto).
 
-**O que funciona hoje em execução (HTTP):** todas as rotas ✅ da seção 6, e as 6 rotinas agendadas. Ainda não
-existem: dashboard e relatórios (Frente F).
+**O que funciona hoje em execução (HTTP):** todas as rotas ✅ da seção 6 e as 7 rotinas agendadas.
 
 ---
 
@@ -81,8 +80,8 @@ Legenda: ✅ serviço + rota prontos (testes automatizados das RNs ainda pendent
 ### Frente F — Dashboard e relatórios
 | Tarefa | Status |
 |---|---|
-| F.1 Indicadores com filtros e visão por perfil (RN54–RN56) | ❌ |
-| F.2 Relatórios CSV/PDF, mascaramento, período padrão, auditoria de exportação (RN43–RN45, RN55) | ❌ |
+| F.1 Indicadores com filtros e visão por perfil (RN54–RN56) | ✅ `application/service/dashboard/DashboardService` |
+| F.2 Relatórios CSV/PDF, mascaramento, período padrão, auditoria de exportação (RN43–RN45, RN55) | ✅ `application/service/report/ReportService` (+ `CsvReportWriter`, `PdfReportWriter`) |
 
 ### Contratos entre módulos (`plan.md §6`)
 Todos os esqueletos que lançavam `UnsupportedOperationException` foram **implementados**:
@@ -184,7 +183,7 @@ e `BeneficiaryRestriction`.
 2. **Rotinas agendadas:** ✅ todas as 6 do `plan.md §8` (crons em `lions.scheduling.cron.*`).
 3. ~~**E.4**~~ ✅ feito: serviço da régua de lembretes (RN46: 7 dias, 1 dia, no dia, a cada 3 dias de atraso, dedupe diário) e do
    resumo diário (RN49) + `GET /notificacoes/resumo-diario`.
-4. **Frente F:** `DashboardService` (RN54–RN56) e `ReportService` (CSV/PDF, mascaramento p/ Consulta, auditoria `EXPORT`).
+4. ~~**Frente F**~~ ✅ feito: `DashboardService` (RN54–RN56) e `ReportService` (CSV/PDF, mascaramento p/ Consulta, auditoria `EXPORT`).
 5. ~~**Banco:** migration Flyway~~ ✅ `V1__init_schema.sql` (PostgreSQL) — ver `docs/banco-de-dados/README.md`.
    **Configuração:** `lions.notification.mode` e `spring.servlet.multipart.max-file-size/max-request-size` no
    `application.yml`; seed de ajuda no perfil `dev`.
@@ -205,7 +204,7 @@ e `BeneficiaryRestriction`.
 ## 6. Contrato de API previsto (frontend ↔ backend)
 
 > Rotas ✅ expostas pelos controllers em `presentation/controller` (verificadas ponta a ponta em 24/11/2026).
-> Rotas ❌ dependem da Frente F. Coluna **Status**: ✅ disponível · ❌ não iniciado.
+> Coluna **Status**: ✅ disponível · ❌ não iniciado (só propostas).
 
 ### 6.1 Convenções (já implementadas na fundação)
 
@@ -370,8 +369,8 @@ signedDocumentAvailable, overdue, daysOverdue, dueSoon, returnedAt, cancelReason
 #### Dashboard, relatórios, ajuda, assistente e parâmetros
 | Método e rota | Perfis | Corpo → Resposta | Status |
 |---|---|---|---|
-| `GET /dashboard?inicio&fim&tipo` | A,O,V | indicadores (Consulta só números — RN56) | ❌ |
-| `GET /relatorios/{tipo}?formato=CSV\|PDF&inicio&fim&tipoEquipamento` | A,O,V | arquivo (mascarado p/ Consulta — RN43) | ❌ |
+| `GET /dashboard?inicio&fim&tipo` | A,O,V | → `{start, end, equipmentType, generatedAt, personalDataHidden, occupancy{activeEquipments, available, reserved, loaned, inMaintenance, writtenOff, occupancyRate}, overdueLoans, waitlist{waiting, reserved}, maintenanceCost, loanVolume{loans, canceled, returns, openLoans}, byType[], overdueItems[]}` — período padrão 30 dias; Consulta recebe `overdueItems: null` (RN56) | ✅ |
+| `GET /relatorios/{tipo}?formato=CSV\|PDF&inicio&fim&tipoEquipamento` | A,O,V | arquivo para download (`Content-Disposition: attachment`). `tipo`: `INVENTARIO` (situação atual, inclui baixados), `EMPRESTIMOS`, `MANUTENCOES`, `ASSISTIDOS` (período padrão 30 dias — RN45). CSV: UTF-8 com BOM, `;`. Consulta: nome/CPF/telefone/endereço mascarados (RN43). Auditado como `EXPORT` (RN44) | ✅ |
 | `GET /ajuda/publico?tipo` | **P** | → `HelpContentResponse[]` | ✅ |
 | `GET /ajuda?tipo&todos` | A,O,V | → `HelpContentResponse[]` (filtrado pelo perfil; `todos=true` só Admin) | ✅ |
 | `POST /ajuda` · `PUT /ajuda/{id}` · `PATCH /ajuda/{id}/inativar` · `/ativar` | A | `{type, title, content, keywords?, audiences[], displayOrder?}` | ✅ |

@@ -67,8 +67,8 @@ Posse: `application/service/waitlist/**`, `application/service/notification/**`,
 
 ### Frente F — Dashboard e relatórios (RF15, RF11)
 Posse: `application/service/dashboard/**`, `application/service/report/**`, `presentation/controller/{Dashboard,Report}Controller.java`, DTOs `Dashboard*`, `Report*`, remoção de `DashboardIndicatorsResponse`, testes correspondentes.
-- [ ] F.1 Indicadores do RF15 (ocupação, itens em atraso, fila atual por tipo, custos de manutenção, volume de empréstimos) com filtros e visão por perfil (RN54–RN56).
-- [ ] F.2 Relatórios CSV/PDF, mascaramento por perfil, período padrão e auditoria de exportação (RN43–RN45, RN55).
+- [x] F.1 Indicadores do RF15 (ocupação, itens em atraso, fila atual por tipo, custos de manutenção, volume de empréstimos) com filtros e visão por perfil (RN54–RN56).
+- [x] F.2 Relatórios CSV/PDF, mascaramento por perfil, período padrão e auditoria de exportação (RN43–RN45, RN55).
 
 ### Frente G — Alinhamento à planilha e ao MER (revisão de 24/11/2026)
 Origem: validação da spec contra as abas "Requisitos - Final", "Regras de negócio - Sugestões", "Casos de Uso" e

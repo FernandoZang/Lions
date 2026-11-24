@@ -144,7 +144,9 @@ Toda regra listada deve ter teste automatizado.
 - **RN58** Criação, alteração e inativação gravam usuário, data/hora e valor anterior dos campos alterados.
 
 ### RF11 — Relatórios (UC28, UC29)
-- Tipos: `INVENTARIO`, `EMPRESTIMOS`, `ASSISTIDOS`, `MANUTENCOES`; formatos `PDF` e `CSV`.
+- Tipos: `INVENTARIO` (situação atual do acervo, inclusive baixados, com custo acumulado de manutenção), `EMPRESTIMOS`
+  (retiradas no período), `MANUTENCOES` (entradas no período, com peças e custos) e `ASSISTIDOS` (perfil de quem teve
+  empréstimo no período: idade/faixa etária, cidade, tipos usados); formatos `PDF` e `CSV` (Excel: UTF-8 com BOM e `;`).
 - **RN43** Perfil Consulta recebe nome/CPF/endereço/telefone mascarados.
 - **RN44** Toda exportação é auditada (quem, quando, filtros).
 - **RN45** Relatórios transacionais exigem período; padrão = últimos 30 dias.
