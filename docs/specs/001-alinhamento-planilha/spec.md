@@ -8,7 +8,7 @@
 > O mapeamento e a lista de ajustes estão em `docs/banco-de-dados/README.md`.
 > **Revisão de 24/11/2026:** spec alinhada à planilha nos pontos que divergiam (RN04, RN34, RN40, RN57, RN60, RF12,
 > RF15, UC16, UC23) e ao MER (endereço próprio, tipo de equipamento como tabela, ano e especificações).
-> Itens marcados com **[rev. 24/11]** ainda não estão implementados — ver `tasks.md`, Frente G.
+> O estado de implementação de cada item **[rev. 24/11]** está na Frente G do `tasks.md`.
 
 ## 1. Objetivo
 

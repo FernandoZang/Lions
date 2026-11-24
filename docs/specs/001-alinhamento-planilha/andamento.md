@@ -16,11 +16,11 @@
 | Onda | Situação |
 |---|---|
 | **Onda 0 — Fundação** | ✅ Concluída (já estava pronta na branch). Verificado antes das mudanças: build ok e **172 testes verdes**. |
-| **Frente G — Alinhamento planilha/MER** | 🟡 G.1–G.6 feitos (modelo, V1, MER); G.7–G.14 pendentes (ajustes de regra da revisão). |
+| **Frente G — Alinhamento planilha/MER** | 🟡 G.1–G.6 (modelo, V1, MER), G.8 (RN40) e G.9 (UC23) feitos; G.7 e G.10–G.14 pendentes. |
 | **Onda 1 — Frentes A–F** | 🟡 **Parcial.** Camada de aplicação (serviços, DTOs, portas e adaptadores) e **controllers REST** das frentes **A, B, C, D e E** prontos. Frente **F** (dashboard/relatórios), rotinas agendadas e régua de lembretes/resumo diário **não iniciadas**. |
 | **Onda 2 — Integração** | ❌ Não iniciada. |
 
-**Estado da build (24/11/2026, após a Frente G):** ✅ `./gradlew build` ok, **181 testes verdes** em H2 e também
+**Estado da build (24/11/2026, após jobs + G.8/G.9):** ✅ `./gradlew build` ok, **191 testes verdes** em H2 e também
 contra **PostgreSQL 16** com a `V1` aplicada pelo Flyway e `ddl-auto: validate` (ainda sem testes da maioria das RNs novas). Os 14 controllers foram verificados subindo a aplicação e executando o fluxo completo pela API
 (pedido público → aprovação → termo PDF → assinatura digital/física → devolução com avaria → manutenção automática →
 encerramento APTO → reserva para o 1º da fila), além de 401/403 por perfil, refresh/logout com revogação e Swagger
@@ -57,7 +57,7 @@ Legenda: ✅ serviço + rota prontos (testes automatizados das RNs ainda pendent
 | C.1 Cadastro (patrimônio gerado), edição restrita, filtros, baixa (RN09, RN11–RN14) | ✅ | `application/service/equipment/EquipmentService` |
 | C.2 QR Code PNG + leitura com operações disponíveis (RN10, RN15) | ✅ | `EquipmentService.qrCode/scan` + `infrastructure/qrcode/ZxingQrCodeAdapter` |
 | C.3 Manutenção: abertura, custos/ajustes, encerramento, listener de avaria (RN24, RN35–RN38, RN41) | ✅ | `application/service/maintenance/MaintenanceService` |
-| C.4 Preventiva `findDue` + job (RN39) | 🟡 (job ❌) | `PreventiveMaintenanceService.findDue/notifyDue` |
+| C.4 Preventiva `findDue` + job (RN39) | ✅ (`PreventiveMaintenanceJob`, diário 01:30) | `PreventiveMaintenanceService.findDue/notifyDue` |
 | C.5 Histórico do equipamento | ✅ | `EquipmentService.history` |
 
 ### Frente D — Empréstimos, termo, ocorrências e auditoria
@@ -67,15 +67,15 @@ Legenda: ✅ serviço + rota prontos (testes automatizados das RNs ainda pendent
 | D.2 Assinatura digital e física (RN21, RN25) | ✅ | `LoanService.registerDigitalSignature/registerPhysicalSignature` |
 | D.3 Renovação (RN23), devolução + ocorrência + eventos (RN24, RN40), cancelamento (RN26), ajustes (RN41) | ✅ | `LoanService.renew/registerReturn/cancel/addAdjustment` |
 | D.4 `BeneficiaryRestrictionService` (RN08, RN20) | ✅ | `application/service/loan/BeneficiaryRestrictionService` |
-| D.5 Job de atraso/inadimplência (RN27) + ocorrências (listar/resolver) | 🟡 (job ❌) | `LoanOverdueService`, `OccurrenceService` |
+| D.5 Job de atraso/inadimplência (RN27) + ocorrências (listar/resolver) | ✅ (`OverdueLoanJob`, diário 01:00) | `LoanOverdueService`, `OccurrenceService` |
 | D.6 Consulta de auditoria (RN58) + histórico de empréstimos com filtros (RF10) | ✅ | `AuditService.search` (Onda 0), `LoanService.findAll` |
 
 ### Frente E — Fila de espera e notificações
 | Tarefa | Status | Onde |
 |---|---|---|
 | E.1 Entrada na fila, ordenação, prioridade, recusa, remoção (RN29–RN31, RN33, RN34) | ✅ | `application/service/waitlist/WaitlistService` |
-| E.2 Reserva automática por evento + expiração (RN32, RN33) | 🟡 (job ❌) | `WaitlistService.onEquipmentAvailable/expireReservations` |
-| E.3 Envio por canal autorizado, porta + adaptador log/wa.me, retentativas, contato manual (RN47, RN48) | 🟡 (job ❌) | `NotificationService`, `application/port/NotificationSenderPort`, `infrastructure/notification/LogNotificationSenderAdapter` |
+| E.2 Reserva automática por evento + expiração (RN32, RN33) | ✅ (`ReservationExpirationJob`, a cada 15 min) | `WaitlistService.onEquipmentAvailable/expireReservations` |
+| E.3 Envio por canal autorizado, porta + adaptador log/wa.me, retentativas, contato manual (RN47, RN48) | ✅ (`NotificationRetryJob`, a cada 15 min; envio real é a G.12) | `NotificationService`, `application/port/NotificationSenderPort`, `infrastructure/notification/LogNotificationSenderAdapter` |
 | E.4 Régua de lembretes (RN46) e resumo diário (RN49) | ❌ | — |
 
 ### Frente F — Dashboard e relatórios
@@ -180,10 +180,9 @@ e `BeneficiaryRestriction`.
 
 1. ~~**Controllers REST**~~ ✅ feito em 24/11/2026 (14 controllers + `AuditService.searchResponses`). Acréscimos ao
    contrato: `GET /ajuda/{id}` (A), `GET /fila/{id}`, `GET /ocorrencias/{id}` e `GET /emprestimos/{id}/ajustes` (A,O).
-2. **Rotinas agendadas** (`infrastructure/scheduler`, com `@ConditionalOnSchedulingEnabled`): `OverdueLoanJob` →
-   `LoanOverdueService`, `ReservationExpirationJob` → `WaitlistService.expireReservations`, `NotificationRetryJob` →
-   `NotificationService.retryFailed`, `PreventiveMaintenanceJob` → `PreventiveMaintenanceService.notifyDue`,
-   `DueDateReminderJob`, `DailySummaryJob`.
+2. **Rotinas agendadas:** ✅ `OverdueLoanJob`, `ReservationExpirationJob`, `NotificationRetryJob` e
+   `PreventiveMaintenanceJob` (crons em `lions.scheduling.cron.*`). Faltam `DueDateReminderJob` e `DailySummaryJob`,
+   que dependem da E.4.
 3. **E.4:** serviço da régua de lembretes (RN46: 7 dias, 1 dia, no dia, a cada 3 dias de atraso, dedupe diário) e do
    resumo diário (RN49) + `GET /notificacoes/resumo-diario`.
 4. **Frente F:** `DashboardService` (RN54–RN56) e `ReportService` (CSV/PDF, mascaramento p/ Consulta, auditoria `EXPORT`).
@@ -323,7 +322,7 @@ Só CPF (RN04, sem `documentType`); `number` aceita "S/N". Menor de 18 anos ou `
 | `GET /manutencoes?status&equipamentoId&tipo` · `GET /manutencoes/{id}` | A,O | → `MaintenanceResponse[]` / `MaintenanceResponse` | ✅ |
 | `PUT /manutencoes/{id}` *(acréscimo)* | A,O | `{defectDescription?, technicalResponsible?}` (só em andamento) | ✅ |
 | `POST /manutencoes/{id}/custos` | A,O (ajuste só A) | `{type: PECA\|SERVICO, description, partReplaced?, amount, adjustment?, adjustmentReason?}` | ✅ |
-| `POST /manutencoes/{id}/encerrar` | A,O (INSERVIVEL só A) — *rev. 24/11: só A (UC23), G.9* | `{verdict: APTO\|INSERVIVEL, notes?}` → `MaintenanceResponse` | ✅ |
+| `POST /manutencoes/{id}/encerrar` | **A** (UC23) | `{verdict: APTO\|INSERVIVEL, notes?}` → `MaintenanceResponse` | ✅ |
 | `GET /manutencoes/preventivas-pendentes` | A,O | → `[{equipmentId, patrimonyNumber, type, lastMaintenanceDate, loanCycles, reason}]` | ✅ |
 
 `availableOperations` (RN15): `EMPRESTAR`, `REGISTRAR_ASSINATURA`, `REGISTRAR_DEVOLUCAO`, `RENOVAR`, `ABRIR_MANUTENCAO`,
@@ -388,10 +387,10 @@ signedDocumentAvailable, overdue, daysOverdue, dueSoon, returnedAt, cancelReason
    para o 1º da fila e gera o aviso (contato manual com link wa.me) → aprovar o pedido com o item reservado
    (`POST /pedidos/{id}/aprovar`) ou registrar a recusa (`POST /fila/{id}/recusa`).
 4. **Devolução:** `POST /emprestimos/{id}/devolucao` → `BOM_ESTADO`: item volta a DISPONIVEL (e já pode ser reservado
-   para a fila) · `PRECISA_MANUTENCAO`/`DANIFICADO`: manutenção corretiva aberta automaticamente (e, se danificado,
-   ocorrência que bloqueia o beneficiário até ser resolvida).
+   para a fila) · `PRECISA_MANUTENCAO`/`DANIFICADO`: manutenção corretiva aberta automaticamente e ocorrência de dano
+   que bloqueia o beneficiário até ser resolvida (RN40; `DANIFICADO` exige descrição).
 5. **Manutenção:** `POST /manutencoes/{id}/custos` → `PUT /manutencoes/{id}` (responsável técnico) →
-   `POST /manutencoes/{id}/encerrar {verdict: "APTO"}` → item DISPONIVEL.
+   `POST /manutencoes/{id}/encerrar {verdict: "APTO"}` (Admin) → item DISPONIVEL.
 6. **Etiqueta e leitura:** `GET /equipamentos/{id}/qrcode` (imprimir) → no celular, ler o QR e chamar
    `GET /equipamentos/leitura?codigo=PT-0001` → montar os botões a partir de `availableOperations`.
 7. **Sessão:** `POST /auth/login` → guardar `token` + `expiresAt` → `POST /auth/refresh` periódico com atividade →

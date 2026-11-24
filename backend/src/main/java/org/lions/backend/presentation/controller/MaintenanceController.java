@@ -80,7 +80,8 @@ public class MaintenanceController {
     }
 
     @PostMapping("/{id}/encerrar")
-    @Operation(summary = "Encerra com parecer APTO ou INSERVIVEL (INSERVIVEL só Admin — RN37)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Encerra com parecer APTO ou INSERVIVEL — somente Admin (UC23, RN37)")
     public MaintenanceResponse close(@PathVariable Long id, @Valid @RequestBody MaintenanceCloseRequest request) {
         return maintenanceService.close(id, request);
     }

@@ -338,12 +338,14 @@ Legenda de perfis: **A** = ADMIN, **O** = OPERATOR, **V** = VIEWER, **P** = púb
 | `GET /assistente/perguntas?q=` | P | RN51 (só FAQ PUBLICO quando anônimo) |
 
 ## 8. Rotinas agendadas (`infrastructure.scheduler`, habilitadas por `lions.scheduling.enabled`, default `true`; `false` nos testes)
+Crons configuráveis em `lions.scheduling.cron.*` e fuso em `lions.scheduling.zone` (vazio = fuso do servidor, o mesmo do
+`Clock`; em produção usar `TZ=America/Sao_Paulo`). Cada job só delega ao serviço; falhas são logadas sem derrubar o agendador.
 | Job | Cron | Dono | RN |
 |---|---|---|---|
 | `OverdueLoanJob` | `0 0 1 * * *` | D | RN27, RN20, RN34 |
-| `ReservationExpirationJob` | `0 0 * * * *` | E | RN33 |
+| `ReservationExpirationJob` | `0 */15 * * * *` | E | RN33 |
 | `DueDateReminderJob` | `0 0 8 * * *` | E | RN46, RN47, aviso de renovação elegível (RF12) |
-| `NotificationRetryJob` | `0 */15 * * * *` | E | RN48 |
+| `NotificationRetryJob` | `0 5/15 * * * *` | E | RN48 |
 | `DailySummaryJob` | `0 0 7 * * *` | E | RN49 |
 | `PreventiveMaintenanceJob` | `0 30 1 * * *` | C | RN39 (notifica Admin uma vez por item/mês) |
 | `SessionExpirationJob` *(rev. 24/11)* | `0 */5 * * * *` | A | RN57 (audita `SESSION_EXPIRED`) |

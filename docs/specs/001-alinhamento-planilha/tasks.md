@@ -46,7 +46,7 @@ Posse: `application/service/equipment/**`, `application/service/maintenance/**`,
 - [x] C.1 Cadastro com patrimônio gerado, edição restrita, listagem/filtros, baixa (RN09, RN11–RN14).
 - [x] C.2 QR Code PNG e leitura com operações disponíveis (RN10, RN15).
 - [x] C.3 Manutenção: abertura, custos/ajustes, encerramento com parecer, listener de avaria (RN24, RN35–RN38, RN41).
-- [ ] C.4 Preventiva: `PreventiveMaintenanceService.findDue` + job (RN39).
+- [x] C.4 Preventiva: `PreventiveMaintenanceService.findDue` + job (RN39).
 - [x] C.5 Histórico do equipamento.
 
 ### Frente D — Empréstimos, termo, ocorrências e auditoria (RF05, RF07, RF10)
@@ -55,14 +55,14 @@ Posse: `application/service/loan/**` (inclui `LoanService`, `BeneficiaryRestrict
 - [x] D.2 Assinatura digital e física (RN21, RN25).
 - [x] D.3 Renovação (RN23), devolução com vistoria + ocorrência + eventos (RN24, RN40), cancelamento (RN26), ajustes (RN41).
 - [x] D.4 `BeneficiaryRestrictionService` (RN08, RN20).
-- [ ] D.5 Job de atraso/inadimplência (RN27) + ocorrências (listar/resolver).
+- [x] D.5 Job de atraso/inadimplência (RN27) + ocorrências (listar/resolver).
 - [x] D.6 Consulta de auditoria (RN58) e histórico de empréstimos com filtros (RF10).
 
 ### Frente E — Fila de espera e notificações (RF06, RF12)
 Posse: `application/service/waitlist/**`, `application/service/notification/**`, `infrastructure/notification/**`, `infrastructure/scheduler/{ReservationExpiration,DueDateReminder,NotificationRetry,DailySummary}Job.java`, `presentation/controller/{Waitlist,Notification}Controller.java`, DTOs `Waitlist*`, `Priority*`, `Notification*`, `DailySummary*`, templates em `WhatsAppMessageHelper` (só acréscimo), testes correspondentes.
 - [x] E.1 Entrada na fila, ordenação, prioridade, recusa, remoção (RN29–RN31, RN33, RN34).
-- [ ] E.2 Reserva automática por evento + expiração (RN32, RN33).
-- [ ] E.3 Envio por canal autorizado, porta de envio + adaptador de log/wa.me, retentativas e contato manual (RN47, RN48).
+- [x] E.2 Reserva automática por evento + expiração (RN32, RN33).
+- [x] E.3 Envio por canal autorizado, porta de envio + adaptador de log/wa.me, retentativas e contato manual (RN47, RN48).
 - [ ] E.4 Régua de lembretes (RN46) e resumo diário (RN49).
 
 ### Frente F — Dashboard e relatórios (RF15, RF11)
@@ -84,8 +84,8 @@ Feito:
 
 A fazer (por frente dona):
 - [ ] G.7 (E) RN34: beneficiário bloqueado pela RN20 — inclusive **termo não assinado** — sai da fila (revoga a decisão 6 do `andamento.md`).
-- [ ] G.8 (D) RN40: devolução `PRECISA_MANUTENCAO` também gera ocorrência `DANO`.
-- [ ] G.9 (C) UC23: encerramento de manutenção só pelo Admin (os dois pareceres).
+- [x] G.8 (D) RN40: devolução `PRECISA_MANUTENCAO` também gera ocorrência `DANO`.
+- [x] G.9 (C) UC23: encerramento de manutenção só pelo Admin (os dois pareceres).
 - [ ] G.10 (D) UC16: renovação pública pelo beneficiário (`POST /emprestimos/renovacao-publica`, CPF + nascimento + patrimônio, limite de tentativas).
 - [ ] G.11 (E) RF12: aviso de "elegível para renovação" no lembrete de 7 dias.
 - [ ] G.12 (E) RN47: adaptadores de envio real — e-mail (SMTP) e SMS/WhatsApp (provedor configurável); contato manual só como contingência (revoga o padrão `manual` da decisão 4).

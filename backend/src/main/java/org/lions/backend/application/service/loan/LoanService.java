@@ -39,7 +39,6 @@ import org.lions.backend.domain.enums.LoanStatus;
 import org.lions.backend.domain.enums.OccurrenceStatus;
 import org.lions.backend.domain.enums.OccurrenceType;
 import org.lions.backend.domain.enums.OrderStatus;
-import org.lions.backend.domain.enums.ReturnCondition;
 import org.lions.backend.domain.enums.SignatureType;
 import org.lions.backend.domain.enums.UserRole;
 import org.lions.backend.domain.exception.BusinessException;
@@ -383,19 +382,24 @@ public class LoanService {
                         "loanId", id));
 
         Long beneficiaryId = loan.getBeneficiary().getId();
-        if (request.returnCondition() == ReturnCondition.DANIFICADO) {
+        if (loanReturn.isHasDamage()) {
+            // RN40 — toda avaria (PRECISA_MANUTENCAO ou DANIFICADO) gera ocorrência vinculada; bloqueia pela RN20
+            String damage = loanReturn.getDamageDescription() != null
+                    ? loanReturn.getDamageDescription()
+                    : "condição " + request.returnCondition().getDescription() + ", sem descrição";
             Occurrence occurrence = occurrenceRepository.save(Occurrence.builder()
                     .beneficiary(loan.getBeneficiary())
                     .loanId(id)
                     .type(OccurrenceType.DANO)
                     .status(OccurrenceStatus.ABERTA)
                     .description("Avaria na devolução do equipamento " + returnedEquipment.getPatrimonyNumber()
-                            + ": " + loanReturn.getDamageDescription())
+                            + ": " + damage)
                     .automatic(true)
                     .createdBy(username)
                     .build());
             auditService.recordAutomatic("Occurrence", occurrence.getId(), AuditAction.CREATE, "RN40",
-                    AuditDetails.of("type", OccurrenceType.DANO, "loanId", id, "beneficiaryId", beneficiaryId));
+                    AuditDetails.of("type", OccurrenceType.DANO, "loanId", id, "beneficiaryId", beneficiaryId,
+                            "returnCondition", request.returnCondition()));
             events.publishEvent(new BeneficiaryRestrictedEvent(beneficiaryId,
                     "Ocorrência de dano registrada na devolução."));
         }
