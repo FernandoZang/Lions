@@ -63,7 +63,7 @@ Posse: `application/service/waitlist/**`, `application/service/notification/**`,
 - [x] E.1 Entrada na fila, ordenação, prioridade, recusa, remoção (RN29–RN31, RN33, RN34).
 - [x] E.2 Reserva automática por evento + expiração (RN32, RN33).
 - [x] E.3 Envio por canal autorizado, porta de envio + adaptador de log/wa.me, retentativas e contato manual (RN47, RN48).
-- [ ] E.4 Régua de lembretes (RN46) e resumo diário (RN49).
+- [x] E.4 Régua de lembretes (RN46) e resumo diário (RN49).
 
 ### Frente F — Dashboard e relatórios (RF15, RF11)
 Posse: `application/service/dashboard/**`, `application/service/report/**`, `presentation/controller/{Dashboard,Report}Controller.java`, DTOs `Dashboard*`, `Report*`, remoção de `DashboardIndicatorsResponse`, testes correspondentes.
@@ -87,7 +87,7 @@ A fazer (por frente dona):
 - [x] G.8 (D) RN40: devolução `PRECISA_MANUTENCAO` também gera ocorrência `DANO`.
 - [x] G.9 (C) UC23: encerramento de manutenção só pelo Admin (os dois pareceres).
 - [ ] G.10 (D) UC16: renovação pública pelo beneficiário (`POST /emprestimos/renovacao-publica`, CPF + nascimento + patrimônio, limite de tentativas).
-- [ ] G.11 (E) RF12: aviso de "elegível para renovação" no lembrete de 7 dias.
+- [x] G.11 (E) RF12: aviso de "elegível para renovação" no lembrete de 7 dias.
 - [ ] G.12 (E) RN47: adaptadores de envio real — e-mail (SMTP) e SMS/WhatsApp (provedor configurável); contato manual só como contingência (revoga o padrão `manual` da decisão 4).
 - [ ] G.13 (A) RN57: sessões persistidas (`tb_user_sessions`, migration V2), `SessionExpirationJob` auditando `SESSION_EXPIRED`, revogação persistida.
 - [ ] G.14 (D) RN60/RNF06: `POST /sincronizacao` + conflitos (`tb_sync_operations`, `tb_sync_conflicts`, migration V2/V3).

@@ -16,18 +16,18 @@
 | Onda | Situação |
 |---|---|
 | **Onda 0 — Fundação** | ✅ Concluída (já estava pronta na branch). Verificado antes das mudanças: build ok e **172 testes verdes**. |
-| **Frente G — Alinhamento planilha/MER** | 🟡 G.1–G.6 (modelo, V1, MER), G.8 (RN40) e G.9 (UC23) feitos; G.7 e G.10–G.14 pendentes. |
+| **Frente G — Alinhamento planilha/MER** | 🟡 G.1–G.6 (modelo, V1, MER), G.8 (RN40), G.9 (UC23) e G.11 (RF12) feitos; G.7, G.10 e G.12–G.14 pendentes. |
 | **Onda 1 — Frentes A–F** | 🟡 **Parcial.** Camada de aplicação (serviços, DTOs, portas e adaptadores) e **controllers REST** das frentes **A, B, C, D e E** prontos. Frente **F** (dashboard/relatórios), rotinas agendadas e régua de lembretes/resumo diário **não iniciadas**. |
 | **Onda 2 — Integração** | ❌ Não iniciada. |
 
-**Estado da build (24/11/2026, após jobs + G.8/G.9):** ✅ `./gradlew build` ok, **191 testes verdes** em H2 e também
+**Estado da build (24/11/2026, após jobs, E.4, G.8, G.9 e G.11):** ✅ `./gradlew build` ok, **207 testes verdes** em H2 e também
 contra **PostgreSQL 16** com a `V1` aplicada pelo Flyway e `ddl-auto: validate` (ainda sem testes da maioria das RNs novas). Os 14 controllers foram verificados subindo a aplicação e executando o fluxo completo pela API
 (pedido público → aprovação → termo PDF → assinatura digital/física → devolução com avaria → manutenção automática →
 encerramento APTO → reserva para o 1º da fila), além de 401/403 por perfil, refresh/logout com revogação e Swagger
 (15 tags). A consulta de CEP responde 503 quando o ViaCEP não está acessível (comportamento previsto).
 
-**O que funciona hoje em execução (HTTP):** todas as rotas ✅ da seção 6. Ainda não existem: rotinas agendadas,
-resumo diário (E.4), dashboard e relatórios (Frente F).
+**O que funciona hoje em execução (HTTP):** todas as rotas ✅ da seção 6, e as 6 rotinas agendadas. Ainda não
+existem: dashboard e relatórios (Frente F) e os itens pendentes da Frente G.
 
 ---
 
@@ -76,7 +76,7 @@ Legenda: ✅ serviço + rota prontos (testes automatizados das RNs ainda pendent
 | E.1 Entrada na fila, ordenação, prioridade, recusa, remoção (RN29–RN31, RN33, RN34) | ✅ | `application/service/waitlist/WaitlistService` |
 | E.2 Reserva automática por evento + expiração (RN32, RN33) | ✅ (`ReservationExpirationJob`, a cada 15 min) | `WaitlistService.onEquipmentAvailable/expireReservations` |
 | E.3 Envio por canal autorizado, porta + adaptador log/wa.me, retentativas, contato manual (RN47, RN48) | ✅ (`NotificationRetryJob`, a cada 15 min; envio real é a G.12) | `NotificationService`, `application/port/NotificationSenderPort`, `infrastructure/notification/LogNotificationSenderAdapter` |
-| E.4 Régua de lembretes (RN46) e resumo diário (RN49) | ❌ | — |
+| E.4 Régua de lembretes (RN46) e resumo diário (RN49) | ✅ | `DueDateReminderService` + `DueDateReminderJob` (08:00), `DailySummaryService` + `DailySummaryJob` (07:00) |
 
 ### Frente F — Dashboard e relatórios
 | Tarefa | Status |
@@ -180,10 +180,8 @@ e `BeneficiaryRestriction`.
 
 1. ~~**Controllers REST**~~ ✅ feito em 24/11/2026 (14 controllers + `AuditService.searchResponses`). Acréscimos ao
    contrato: `GET /ajuda/{id}` (A), `GET /fila/{id}`, `GET /ocorrencias/{id}` e `GET /emprestimos/{id}/ajustes` (A,O).
-2. **Rotinas agendadas:** ✅ `OverdueLoanJob`, `ReservationExpirationJob`, `NotificationRetryJob` e
-   `PreventiveMaintenanceJob` (crons em `lions.scheduling.cron.*`). Faltam `DueDateReminderJob` e `DailySummaryJob`,
-   que dependem da E.4.
-3. **E.4:** serviço da régua de lembretes (RN46: 7 dias, 1 dia, no dia, a cada 3 dias de atraso, dedupe diário) e do
+2. **Rotinas agendadas:** ✅ todas as 6 do `plan.md §8` (crons em `lions.scheduling.cron.*`).
+3. ~~**E.4**~~ ✅ feito: serviço da régua de lembretes (RN46: 7 dias, 1 dia, no dia, a cada 3 dias de atraso, dedupe diário) e do
    resumo diário (RN49) + `GET /notificacoes/resumo-diario`.
 4. **Frente F:** `DashboardService` (RN54–RN56) e `ReportService` (CSV/PDF, mascaramento p/ Consulta, auditoria `EXPORT`).
 5. ~~**Banco:** migration Flyway~~ ✅ `V1__init_schema.sql` (PostgreSQL) — ver `docs/banco-de-dados/README.md`.
@@ -207,7 +205,7 @@ e `BeneficiaryRestriction`.
 ## 6. Contrato de API previsto (frontend ↔ backend)
 
 > Rotas ✅ expostas pelos controllers em `presentation/controller` (verificadas ponta a ponta em 24/11/2026).
-> Rotas ❌ dependem da E.4 e da Frente F. Coluna **Status**: ✅ disponível · ❌ não iniciado.
+> Rotas ❌ dependem da Frente F. Coluna **Status**: ✅ disponível · ❌ não iniciado.
 
 ### 6.1 Convenções (já implementadas na fundação)
 
@@ -362,7 +360,7 @@ signedDocumentAvailable, overdue, daysOverdue, dueSoon, returnedAt, cancelReason
 | `GET /notificacoes?status&tipo&destinatario&beneficiarioId` | A,O | → `NotificationResponse[]` | ✅ |
 | `GET /notificacoes/contatos-manuais` | A,O | → `NotificationResponse[]` com `waLink` (botão "Lembrar no WhatsApp") | ✅ |
 | `PATCH /notificacoes/{id}/concluir` | A,O | — → `NotificationResponse` | ✅ |
-| `GET /notificacoes/resumo-diario` | A | (RN49) | ❌ |
+| `GET /notificacoes/resumo-diario` | A | → `{date, generatedAt, overdueLoans[], expiredReservations[], openMaintenances[], preventiveDue[]}` (RN49) | ✅ |
 
 #### Dashboard, relatórios, ajuda, assistente e parâmetros
 | Método e rota | Perfis | Corpo → Resposta | Status |

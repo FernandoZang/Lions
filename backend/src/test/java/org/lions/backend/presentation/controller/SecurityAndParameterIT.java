@@ -182,4 +182,29 @@ class SecurityAndParameterIT {
                         .contentType(MediaType.APPLICATION_JSON).content("{\"value\":\"3\"}"))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    @WithMockUser(username = "admin.teste", roles = "ADMIN")
+    void devePermitirResumoDiarioQuandoAdmin() throws Exception {
+        mockMvc.perform(get("/api/v1/notificacoes/resumo-diario"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.overdueLoans").isArray())
+                .andExpect(jsonPath("$.expiredReservations").isArray())
+                .andExpect(jsonPath("$.openMaintenances").isArray())
+                .andExpect(jsonPath("$.preventiveDue").isArray());
+    }
+
+    @Test
+    @WithMockUser(username = "operador.teste", roles = "OPERATOR")
+    void deveNegarResumoDiarioQuandoOperador() throws Exception {
+        mockMvc.perform(get("/api/v1/notificacoes/resumo-diario")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "operador.teste", roles = "OPERATOR")
+    void deveNegarEncerramentoDeManutencaoQuandoOperador() throws Exception {
+        mockMvc.perform(post("/api/v1/manutencoes/1/encerrar")
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"verdict\":\"APTO\"}"))
+                .andExpect(status().isForbidden());
+    }
 }

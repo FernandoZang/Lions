@@ -151,14 +151,16 @@ Toda regra listada deve ter teste automatizado.
 - **RN55** Baixados ficam fora de disponibilidade/ocupação, mas aparecem no histórico e nos custos.
 
 ### RF12 — Notificações (UC30–UC33)
-- **RN46** Avisos 7 dias antes, 1 dia antes, no dia e a cada 3 dias em atraso (sem duplicar no mesmo dia).
+- **RN46** Avisos 7 dias antes, 1 dia antes, no dia e a cada 3 dias em atraso — no 1º dia de atraso e depois a cada
+  3 dias (1º, 4º, 7º…) — sem duplicar no mesmo dia. Só empréstimos efetivados (`ATIVO`/`ATRASADO`).
 - **RF12 [rev. 24/11]** Aviso de **elegível para renovação**: no aviso de 7 dias (início da janela da RN23), se o
   empréstimo cumpre a RN23, a mensagem informa que pode ser renovado e como (UC16); se não cumpre, não menciona renovação.
 - **RN47 [rev. 24/11]** Envio **automático** pelos canais autorizados no consentimento: e-mail (SMTP), SMS e WhatsApp,
   cada um por um adaptador da porta `NotificationSenderPort`, habilitado por configuração. Sem canal autorizado, ou sem
   adaptador configurado para o canal, o aviso vira tarefa de contato manual para o Admin (com link wa.me pronto).
 - **RN48** Falha registrada; até 3 tentativas; depois vira contato manual.
-- **RN49** Resumo diário ao Admin: atrasos, reservas expiradas, manutenções abertas, preventivas vencidas.
+- **RN49** Resumo diário ao Admin: atrasos, reservas expiradas (últimas 24 h), manutenções abertas, preventivas
+  vencidas — enviado às 07:00 como notificação interna e consultável em `GET /notificacoes/resumo-diario` (só Admin).
 
 ### RF13 — Assistente (UC34–UC36), baseado em regras
 - **RN50** Só sugere (alocação fila × itens disponíveis); nunca executa.

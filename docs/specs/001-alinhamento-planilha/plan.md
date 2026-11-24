@@ -344,9 +344,9 @@ Crons configuráveis em `lions.scheduling.cron.*` e fuso em `lions.scheduling.zo
 |---|---|---|---|
 | `OverdueLoanJob` | `0 0 1 * * *` | D | RN27, RN20, RN34 |
 | `ReservationExpirationJob` | `0 */15 * * * *` | E | RN33 |
-| `DueDateReminderJob` | `0 0 8 * * *` | E | RN46, RN47, aviso de renovação elegível (RF12) |
+| `DueDateReminderJob` | `0 0 8 * * *` | E | RN46 (7 d, 1 d, no dia; atraso no 1º dia e a cada 3 d), RN47, aviso de renovação elegível (RF12) |
 | `NotificationRetryJob` | `0 5/15 * * * *` | E | RN48 |
-| `DailySummaryJob` | `0 0 7 * * *` | E | RN49 |
+| `DailySummaryJob` | `0 0 7 * * *` | E | RN49 (notificação interna aos Admins, uma vez por dia) |
 | `PreventiveMaintenanceJob` | `0 30 1 * * *` | C | RN39 (notifica Admin uma vez por item/mês) |
 | `SessionExpirationJob` *(rev. 24/11)* | `0 */5 * * * *` | A | RN57 (audita `SESSION_EXPIRED`) |
 

@@ -3,6 +3,8 @@ package org.lions.backend.infrastructure.scheduler;
 import org.junit.jupiter.api.Test;
 import org.lions.backend.application.service.loan.LoanOverdueService;
 import org.lions.backend.application.service.maintenance.PreventiveMaintenanceService;
+import org.lions.backend.application.service.notification.DailySummaryService;
+import org.lions.backend.application.service.notification.DueDateReminderService;
 import org.lions.backend.application.service.notification.NotificationService;
 import org.lions.backend.application.service.waitlist.WaitlistService;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -21,8 +23,10 @@ class ScheduledJobsTest {
             .withBean(WaitlistService.class, () -> mock(WaitlistService.class))
             .withBean(NotificationService.class, () -> mock(NotificationService.class))
             .withBean(PreventiveMaintenanceService.class, () -> mock(PreventiveMaintenanceService.class))
+            .withBean(DueDateReminderService.class, () -> mock(DueDateReminderService.class))
+            .withBean(DailySummaryService.class, () -> mock(DailySummaryService.class))
             .withUserConfiguration(OverdueLoanJob.class, ReservationExpirationJob.class, NotificationRetryJob.class,
-                    PreventiveMaintenanceJob.class);
+                    PreventiveMaintenanceJob.class, DueDateReminderJob.class, DailySummaryJob.class);
 
     @Test
     void deveRegistrarJobsQuandoAgendamentoHabilitado() {
@@ -31,6 +35,8 @@ class ScheduledJobsTest {
             assertThat(context).hasSingleBean(ReservationExpirationJob.class);
             assertThat(context).hasSingleBean(NotificationRetryJob.class);
             assertThat(context).hasSingleBean(PreventiveMaintenanceJob.class);
+            assertThat(context).hasSingleBean(DueDateReminderJob.class);
+            assertThat(context).hasSingleBean(DailySummaryJob.class);
         });
     }
 
@@ -46,13 +52,16 @@ class ScheduledJobsTest {
             assertThat(context).doesNotHaveBean(ReservationExpirationJob.class);
             assertThat(context).doesNotHaveBean(NotificationRetryJob.class);
             assertThat(context).doesNotHaveBean(PreventiveMaintenanceJob.class);
+            assertThat(context).doesNotHaveBean(DueDateReminderJob.class);
+            assertThat(context).doesNotHaveBean(DailySummaryJob.class);
         });
     }
 
     @Test
     void deveTerCronValidoQuandoUsaPadrao() {
         for (String cron : new String[]{OverdueLoanJob.DEFAULT_CRON, ReservationExpirationJob.DEFAULT_CRON,
-                NotificationRetryJob.DEFAULT_CRON, PreventiveMaintenanceJob.DEFAULT_CRON}) {
+                NotificationRetryJob.DEFAULT_CRON, PreventiveMaintenanceJob.DEFAULT_CRON, DueDateReminderJob.DEFAULT_CRON,
+                DailySummaryJob.DEFAULT_CRON}) {
             assertThat(CronExpression.isValidExpression(cron)).as(cron).isTrue();
         }
     }
@@ -64,8 +73,12 @@ class ScheduledJobsTest {
         WaitlistService waitlist = mock(WaitlistService.class);
         NotificationService notifications = mock(NotificationService.class);
         PreventiveMaintenanceService preventive = mock(PreventiveMaintenanceService.class);
+        DueDateReminderService reminders = mock(DueDateReminderService.class);
+        DailySummaryService summary = mock(DailySummaryService.class);
 
         new OverdueLoanJob(overdue).run();
+        new DueDateReminderJob(reminders).run();
+        new DailySummaryJob(summary).run();
         new ReservationExpirationJob(waitlist).run();
         new NotificationRetryJob(notifications).run();
         new PreventiveMaintenanceJob(preventive).run();
@@ -74,6 +87,8 @@ class ScheduledJobsTest {
         verify(waitlist).expireReservations();
         verify(notifications).retryFailed();
         verify(preventive).notifyDue();
+        verify(reminders).sendReminders();
+        verify(summary).sendToAdmins();
     }
 
     @Test

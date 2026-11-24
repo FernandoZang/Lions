@@ -476,11 +476,13 @@ public class LoanService {
         String description = equipment != null && equipment.getType() != null
                 ? equipment.getType().getDescription() : "ortopédico";
         String patrimony = equipment != null ? equipment.getPatrimonyNumber() : null;
+        boolean renewable = equipment != null && equipment.getType() != null
+                && loan.canRenew(today, renewalPolicy(), waitlistService.hasWaitingFor(equipment.getType()));
         String message = loan.isOverdue(today)
                 ? whatsApp.overdueMessage(beneficiary.getFullName(), description, patrimony,
                 loan.getExpectedReturnDate())
                 : whatsApp.dueDateReminderMessage(beneficiary.getFullName(), description, patrimony,
-                loan.getExpectedReturnDate());
+                loan.getExpectedReturnDate(), renewable);
         try {
             return whatsApp.buildLink(beneficiary.getPhone(), message);
         } catch (IllegalArgumentException e) {

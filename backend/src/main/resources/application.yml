@@ -47,6 +47,8 @@ lions:
       preventive-maintenance: "0 30 1 * * *"  # RN39 — diária, 01:30
       reservation-expiration: "0 */15 * * * *" # RN33 — a cada 15 min
       notification-retry: "0 5/15 * * * *"    # RN48 — a cada 15 min (defasada 5 min)
+      daily-summary: "0 0 7 * * *"            # RN49 — diária, 07:00
+      due-date-reminders: "0 0 8 * * *"       # RN46/RF12 — diária, 08:00
   cors:
     # Lista de origens (padrões aceitos, ex.: https://*.lionsmedianeira.org.br)
     allowed-origins:

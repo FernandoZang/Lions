@@ -2,7 +2,6 @@ package org.lions.backend.application.service.loan;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.lions.backend.application.dto.request.BeneficiaryRequest;
 import org.lions.backend.application.dto.request.DigitalSignatureRequest;
 import org.lions.backend.application.dto.request.EquipmentCreateRequest;
 import org.lions.backend.application.dto.request.LoanCreateRequest;
@@ -20,24 +19,20 @@ import org.lions.backend.domain.enums.EquipmentType;
 import org.lions.backend.domain.enums.LoanStatus;
 import org.lions.backend.domain.enums.MaintenanceStatus;
 import org.lions.backend.domain.enums.MaintenanceVerdict;
-import org.lions.backend.domain.enums.NotificationChannel;
 import org.lions.backend.domain.enums.OccurrenceStatus;
 import org.lions.backend.domain.enums.OccurrenceType;
 import org.lions.backend.domain.enums.ReturnCondition;
 import org.lions.backend.domain.exception.ForbiddenOperationException;
 import org.lions.backend.domain.repository.OccurrenceRepositoryPort;
 import org.lions.backend.infrastructure.scheduler.OverdueLoanJob;
+import org.lions.backend.support.TestFixtures;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -68,36 +63,11 @@ class ReturnDamageAndMaintenanceIT {
     }
 
     private static void as(String username, String role) {
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                username, "n/a", List.of(new SimpleGrantedAuthority("ROLE_" + role))));
-    }
-
-    /** CPF válido aleatório (para não colidir entre testes). */
-    private static String randomCpf() {
-        int[] d = new int[11];
-        for (int i = 0; i < 9; i++) {
-            d[i] = ThreadLocalRandom.current().nextInt(10);
-        }
-        for (int k = 9; k < 11; k++) {
-            int sum = 0;
-            for (int i = 0; i < k; i++) {
-                sum += d[i] * (k + 1 - i);
-            }
-            int r = (sum * 10) % 11;
-            d[k] = r == 10 ? 0 : r;
-        }
-        StringBuilder sb = new StringBuilder();
-        for (int v : d) {
-            sb.append(v);
-        }
-        return sb.toString();
+        TestFixtures.authenticateAs(username, role);
     }
 
     private Long beneficiary() {
-        return beneficiaryService.create(new BeneficiaryRequest("Maria Teste", randomCpf(), LocalDate.of(1950, 5, 20),
-                "45999998888", null, "85884-000", "Rua Paraná", "100", null, "Centro", "Medianeira", "PR",
-                "João Teste", "45988887777", "Filho", false, null, null, null, null, null, null,
-                true, null, Set.of(NotificationChannel.WHATSAPP))).id();
+        return beneficiaryService.create(TestFixtures.beneficiaryRequest("Maria Teste")).id();
     }
 
     private Long equipment() {
