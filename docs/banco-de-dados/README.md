@@ -4,6 +4,7 @@
 |---|---|
 | [`MER.json`](MER.json) | MER lógico (export do Lucidchart) ajustado à Spec 001: nomes em português, ids `bigint` |
 | [`backend/src/main/resources/db/migration/V1__init_schema.sql`](../../backend/src/main/resources/db/migration/V1__init_schema.sql) | Script físico **PostgreSQL** (Flyway), nomes em inglês |
+| [`V2__frente_g_sessoes_sincronizacao.sql`](../../backend/src/main/resources/db/migration/V2__frente_g_sessoes_sincronizacao.sql) | Sessões (RN57) e sincronização offline (RN60) |
 
 O diagrama abaixo é gerado a partir do `MER.json`. O original continua no Lucidchart
 (link no `README.md` e na aba "Banco de Dados" da planilha). Para atualizar lá, refaça as mudanças listadas em
@@ -53,6 +54,9 @@ contra PostgreSQL com a V1 (`SPRING_DATASOURCE_URL=... SPRING_FLYWAY_ENABLED=tru
 | `tb_auditoria` | `tb_audit_logs` | somente inserção |
 | `tb_parametro` | `tb_system_parameters` | |
 | `tb_conteudo_ajuda` / `tb_conteudo_ajuda_publico` | `tb_help_contents` / `tb_help_content_audiences` | |
+| `tb_sessao_usuario` | `tb_user_sessions` | V2 — uma sessão por token (`jti`), encerramento auditado (RN57) |
+| `tb_sincronizacao_operacao` | `tb_sync_operations` | V2 — operações offline recebidas; `client_operation_id` único (idempotência) |
+| `tb_sincronizacao_conflito` | `tb_sync_conflicts` | V2 — conflitos para conferência manual (RN60) |
 | — | `tb_lions_clubs`, `tb_members`, `tb_social_actions` | dados do clube, fora da planilha |
 
 Convenções físicas que o MER não mostra:
@@ -113,10 +117,8 @@ Em relação ao export original do Lucidchart:
     - `tb_parametro` (RN18, RN19, RN39, RN45)
     - `tb_conteudo_ajuda` e `tb_conteudo_ajuda_publico` (RN53)
 
-**Previstas na spec, ainda sem tabela** (entram em migrations futuras, junto com a implementação):
-
-- `tb_user_sessions`: registro de sessão para auditar o encerramento por inatividade (RN57).
-- `tb_sync_conflicts`: conflitos da sincronização offline (RN60).
+11. **Tabelas da V2 (Frente G):** `tb_sessao_usuario` (RN57), `tb_sincronizacao_operacao` e
+    `tb_sincronizacao_conflito` (RN60).
 
 ## Diagrama
 
@@ -149,6 +151,10 @@ erDiagram
     tb_emprestimo ||--o{ tb_notificacao : ""
     tb_beneficiario ||--o{ tb_equipamento : ""
     tb_conteudo_ajuda ||--o{ tb_conteudo_ajuda_publico : ""
+    tb_equipamento ||--o{ tb_sincronizacao_conflito : ""
+    tb_emprestimo ||--o{ tb_sincronizacao_conflito : ""
+    tb_emprestimo ||--o{ tb_sincronizacao_operacao : ""
+    tb_sincronizacao_conflito ||--o{ tb_sincronizacao_operacao : ""
     tb_usuario {
         bigint id PK
         varchar nome
@@ -406,6 +412,47 @@ erDiagram
     tb_conteudo_ajuda_publico {
         bigint id_conteudo FK
         varchar publico
+    }
+    tb_sessao_usuario {
+        bigint id PK
+        varchar jti
+        varchar usuario
+        timestamp dt_emissao
+        timestamp dt_expiracao
+        timestamp dt_encerramento
+        varchar motivo_encerramento
+    }
+    tb_sincronizacao_conflito {
+        bigint id PK
+        bigint id_equipamento FK
+        bigint id_emprestimo_existente FK
+        varchar id_operacao_cliente FK
+        varchar tipo_operacao
+        timestamp dt_operacao_recebida
+        timestamp dt_registro_existente
+        varchar prevalece
+        varchar descricao
+        varchar status
+        varchar usuario
+        varchar nota_resolucao
+        varchar resolvido_por
+        timestamp dt_resolucao
+        timestamp dt_cadastro
+    }
+    tb_sincronizacao_operacao {
+        bigint id PK
+        varchar id_operacao_cliente FK
+        varchar tipo
+        bigint id_beneficiario FK
+        bigint id_equipamento FK
+        bigint id_emprestimo FK
+        timestamp dt_operacao
+        timestamp dt_recebimento
+        varchar usuario
+        varchar resultado
+        varchar mensagem
+        bigint id_emprestimo_resultante FK
+        bigint id_conflito FK
     }
 ```
 

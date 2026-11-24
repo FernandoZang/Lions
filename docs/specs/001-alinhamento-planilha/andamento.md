@@ -16,18 +16,17 @@
 | Onda | Situação |
 |---|---|
 | **Onda 0 — Fundação** | ✅ Concluída (já estava pronta na branch). Verificado antes das mudanças: build ok e **172 testes verdes**. |
-| **Frente G — Alinhamento planilha/MER** | 🟡 G.1–G.6 feitos (modelo, V1, MER); G.7–G.14 pendentes (ajustes de regra da revisão). |
-| **Onda 1 — Frentes A–F** | 🟡 **Parcial.** Camada de aplicação (serviços, DTOs, portas e adaptadores) e **controllers REST** das frentes **A, B, C, D e E** prontos. Frente **F** (dashboard/relatórios), rotinas agendadas e régua de lembretes/resumo diário **não iniciadas**. |
+| **Frente G — Alinhamento planilha/MER** | ✅ G.1–G.14 concluídas (modelo, V1/V2, MER e ajustes de regra da revisão). |
+| **Onda 1 — Frentes A–F** | ✅ **Concluída.** Serviços e controllers REST das frentes A–F, as 7 rotinas agendadas, régua de lembretes, resumo diário, dashboard e relatórios. Pendente só o seed de ajuda em `dev` (A.3). |
 | **Onda 2 — Integração** | ❌ Não iniciada. |
 
-**Estado da build (24/11/2026, após a Frente G):** ✅ `./gradlew build` ok, **181 testes verdes** em H2 e também
+**Estado da build (24/11/2026, após as Frentes G e F):** ✅ `./gradlew build` ok, **236 testes verdes** em H2 e também
 contra **PostgreSQL 16** com a `V1` aplicada pelo Flyway e `ddl-auto: validate` (ainda sem testes da maioria das RNs novas). Os 14 controllers foram verificados subindo a aplicação e executando o fluxo completo pela API
 (pedido público → aprovação → termo PDF → assinatura digital/física → devolução com avaria → manutenção automática →
 encerramento APTO → reserva para o 1º da fila), além de 401/403 por perfil, refresh/logout com revogação e Swagger
 (15 tags). A consulta de CEP responde 503 quando o ViaCEP não está acessível (comportamento previsto).
 
-**O que funciona hoje em execução (HTTP):** todas as rotas ✅ da seção 6. Ainda não existem: rotinas agendadas,
-resumo diário (E.4), dashboard e relatórios (Frente F).
+**O que funciona hoje em execução (HTTP):** todas as rotas ✅ da seção 6 e as 7 rotinas agendadas.
 
 ---
 
@@ -57,7 +56,7 @@ Legenda: ✅ serviço + rota prontos (testes automatizados das RNs ainda pendent
 | C.1 Cadastro (patrimônio gerado), edição restrita, filtros, baixa (RN09, RN11–RN14) | ✅ | `application/service/equipment/EquipmentService` |
 | C.2 QR Code PNG + leitura com operações disponíveis (RN10, RN15) | ✅ | `EquipmentService.qrCode/scan` + `infrastructure/qrcode/ZxingQrCodeAdapter` |
 | C.3 Manutenção: abertura, custos/ajustes, encerramento, listener de avaria (RN24, RN35–RN38, RN41) | ✅ | `application/service/maintenance/MaintenanceService` |
-| C.4 Preventiva `findDue` + job (RN39) | 🟡 (job ❌) | `PreventiveMaintenanceService.findDue/notifyDue` |
+| C.4 Preventiva `findDue` + job (RN39) | ✅ (`PreventiveMaintenanceJob`, diário 01:30) | `PreventiveMaintenanceService.findDue/notifyDue` |
 | C.5 Histórico do equipamento | ✅ | `EquipmentService.history` |
 
 ### Frente D — Empréstimos, termo, ocorrências e auditoria
@@ -67,22 +66,22 @@ Legenda: ✅ serviço + rota prontos (testes automatizados das RNs ainda pendent
 | D.2 Assinatura digital e física (RN21, RN25) | ✅ | `LoanService.registerDigitalSignature/registerPhysicalSignature` |
 | D.3 Renovação (RN23), devolução + ocorrência + eventos (RN24, RN40), cancelamento (RN26), ajustes (RN41) | ✅ | `LoanService.renew/registerReturn/cancel/addAdjustment` |
 | D.4 `BeneficiaryRestrictionService` (RN08, RN20) | ✅ | `application/service/loan/BeneficiaryRestrictionService` |
-| D.5 Job de atraso/inadimplência (RN27) + ocorrências (listar/resolver) | 🟡 (job ❌) | `LoanOverdueService`, `OccurrenceService` |
+| D.5 Job de atraso/inadimplência (RN27) + ocorrências (listar/resolver) | ✅ (`OverdueLoanJob`, diário 01:00) | `LoanOverdueService`, `OccurrenceService` |
 | D.6 Consulta de auditoria (RN58) + histórico de empréstimos com filtros (RF10) | ✅ | `AuditService.search` (Onda 0), `LoanService.findAll` |
 
 ### Frente E — Fila de espera e notificações
 | Tarefa | Status | Onde |
 |---|---|---|
 | E.1 Entrada na fila, ordenação, prioridade, recusa, remoção (RN29–RN31, RN33, RN34) | ✅ | `application/service/waitlist/WaitlistService` |
-| E.2 Reserva automática por evento + expiração (RN32, RN33) | 🟡 (job ❌) | `WaitlistService.onEquipmentAvailable/expireReservations` |
-| E.3 Envio por canal autorizado, porta + adaptador log/wa.me, retentativas, contato manual (RN47, RN48) | 🟡 (job ❌) | `NotificationService`, `application/port/NotificationSenderPort`, `infrastructure/notification/LogNotificationSenderAdapter` |
-| E.4 Régua de lembretes (RN46) e resumo diário (RN49) | ❌ | — |
+| E.2 Reserva automática por evento + expiração (RN32, RN33) | ✅ (`ReservationExpirationJob`, a cada 15 min) | `WaitlistService.onEquipmentAvailable/expireReservations` |
+| E.3 Envio por canal autorizado, porta + adaptador log/wa.me, retentativas, contato manual (RN47, RN48) | ✅ (`NotificationRetryJob`, a cada 15 min; envio real é a G.12) | `NotificationService`, `application/port/NotificationSenderPort`, `infrastructure/notification/LogNotificationSenderAdapter` |
+| E.4 Régua de lembretes (RN46) e resumo diário (RN49) | ✅ | `DueDateReminderService` + `DueDateReminderJob` (08:00), `DailySummaryService` + `DailySummaryJob` (07:00) |
 
 ### Frente F — Dashboard e relatórios
 | Tarefa | Status |
 |---|---|
-| F.1 Indicadores com filtros e visão por perfil (RN54–RN56) | ❌ |
-| F.2 Relatórios CSV/PDF, mascaramento, período padrão, auditoria de exportação (RN43–RN45, RN55) | ❌ |
+| F.1 Indicadores com filtros e visão por perfil (RN54–RN56) | ✅ `application/service/dashboard/DashboardService` |
+| F.2 Relatórios CSV/PDF, mascaramento, período padrão, auditoria de exportação (RN43–RN45, RN55) | ✅ `application/service/report/ReportService` (+ `CsvReportWriter`, `PdfReportWriter`) |
 
 ### Contratos entre módulos (`plan.md §6`)
 Todos os esqueletos que lançavam `UnsupportedOperationException` foram **implementados**:
@@ -149,13 +148,14 @@ e `BeneficiaryRestriction`.
    outro, em manutenção, baixado). Cobre a corrida concorrente da RN28 (lock pessimista + `@Version`).
 3. **Regras de perfil dentro do caso de uso → 403** (`ForbiddenOperationException`): empréstimo retroativo (RN22), ajuste
    de custo (RN41), encerramento INSERVÍVEL (RN37). Demais permissões ficam no `@PreAuthorize` dos controllers.
-4. *(Revogada na revisão de 24/11 — RN47: envio automático real; contato manual só como contingência. Tarefa G.12.)*
+4. *(Revogada na revisão de 24/11 — G.12: modo padrão agora é `auto` — e-mail por SMTP e SMS/WhatsApp pela Twilio
+   quando configurados; contato manual só como contingência. `manual` e `simulate` continuam disponíveis.)*
    **Notificações sem provedor real:** propriedade `lions.notification.mode` — `manual` (padrão: toda notificação ao
    beneficiário vira **tarefa de contato manual com link wa.me pronto**, o botão "Lembrar no WhatsApp") ou `simulate`
    (só registra em log e marca como ENVIADA). Retentativas (RN48) passam a valer quando um provedor real for plugado na
    porta `NotificationSenderPort`.
 5. **Deduplicação sem empréstimo** via `Notification.referenceKey` (ex.: preventiva uma vez por item/mês — `EQUIPMENT:12`).
-6. *(Revogada na revisão de 24/11 — RN34: termo pendente também remove da fila. Tarefa G.7.)*
+6. *(Revogada na revisão de 24/11 — G.7: termo pendente também remove da fila, RN34.)*
    **`BeneficiaryRestriction`** ganhou `hasOverdueLoan`, `hasPendingSignature`, `inactive` e `removesFromWaitlist()`:
    termo pendente de assinatura **bloqueia** novas entradas (RN20), mas **não remove** quem já está na fila; atraso,
    ocorrência aberta e cadastro inativo removem (RN34). O construtor original de 4 argumentos foi mantido.
@@ -180,13 +180,10 @@ e `BeneficiaryRestriction`.
 
 1. ~~**Controllers REST**~~ ✅ feito em 24/11/2026 (14 controllers + `AuditService.searchResponses`). Acréscimos ao
    contrato: `GET /ajuda/{id}` (A), `GET /fila/{id}`, `GET /ocorrencias/{id}` e `GET /emprestimos/{id}/ajustes` (A,O).
-2. **Rotinas agendadas** (`infrastructure/scheduler`, com `@ConditionalOnSchedulingEnabled`): `OverdueLoanJob` →
-   `LoanOverdueService`, `ReservationExpirationJob` → `WaitlistService.expireReservations`, `NotificationRetryJob` →
-   `NotificationService.retryFailed`, `PreventiveMaintenanceJob` → `PreventiveMaintenanceService.notifyDue`,
-   `DueDateReminderJob`, `DailySummaryJob`.
-3. **E.4:** serviço da régua de lembretes (RN46: 7 dias, 1 dia, no dia, a cada 3 dias de atraso, dedupe diário) e do
+2. **Rotinas agendadas:** ✅ todas as 6 do `plan.md §8` (crons em `lions.scheduling.cron.*`).
+3. ~~**E.4**~~ ✅ feito: serviço da régua de lembretes (RN46: 7 dias, 1 dia, no dia, a cada 3 dias de atraso, dedupe diário) e do
    resumo diário (RN49) + `GET /notificacoes/resumo-diario`.
-4. **Frente F:** `DashboardService` (RN54–RN56) e `ReportService` (CSV/PDF, mascaramento p/ Consulta, auditoria `EXPORT`).
+4. ~~**Frente F**~~ ✅ feito: `DashboardService` (RN54–RN56) e `ReportService` (CSV/PDF, mascaramento p/ Consulta, auditoria `EXPORT`).
 5. ~~**Banco:** migration Flyway~~ ✅ `V1__init_schema.sql` (PostgreSQL) — ver `docs/banco-de-dados/README.md`.
    **Configuração:** `lions.notification.mode` e `spring.servlet.multipart.max-file-size/max-request-size` no
    `application.yml`; seed de ajuda no perfil `dev`.
@@ -196,8 +193,7 @@ e `BeneficiaryRestriction`.
 8. **Onda 2:** teste ponta a ponta (I.2), suíte verde (I.3) e docs (I.4 — `README.md`, `backend/README.md` e
    `docs/DESCRICAO_DO_PROJETO_E_BACKEND.md` ainda citam Maven, senha `lions123`, prazo de 90 dias e rotas antigas).
 9. **Testes das RNs** (adiados por decisão — sem TDD nesta etapa).
-10. **Frente G (revisão planilha/MER):** G.7–G.14 do `tasks.md` — RN34, RN40, UC23, UC16, aviso de renovação (RF12),
-    envio real (RN47), sessões (RN57) e sincronização offline (RN60).
+10. ~~**Frente G**~~ ✅ concluída (G.1–G.14).
 
 > **Ambiente:** o toolchain do Gradle exige **JDK 21** (`gradle-daemon-jvm.properties`). Sem JDK 21 instalado a build
 > não inicia. Sugestão: instalar o Temurin 21 ou adicionar o plugin `org.gradle.toolchains.foojay-resolver-convention`
@@ -208,14 +204,15 @@ e `BeneficiaryRestriction`.
 ## 6. Contrato de API previsto (frontend ↔ backend)
 
 > Rotas ✅ expostas pelos controllers em `presentation/controller` (verificadas ponta a ponta em 24/11/2026).
-> Rotas ❌ dependem da E.4 e da Frente F. Coluna **Status**: ✅ disponível · ❌ não iniciado.
+> Coluna **Status**: ✅ disponível · ❌ não iniciado (só propostas).
 
 ### 6.1 Convenções (já implementadas na fundação)
 
 - **Base URL:** `http://localhost:8080/api/v1` (dev). Swagger: `/swagger-ui.html`; OpenAPI: `/v3/api-docs`.
 - **Autenticação:** JWT HS256 no header `Authorization: Bearer <token>`. Validade **30 min** (`expiresIn` em segundos
   e `expiresAt` em UTC na resposta do login). O frontend deve chamar `POST /auth/refresh` enquanto houver atividade
-  (ex.: faltando < 5 min) — sem atividade a sessão expira (RN57). `POST /auth/logout` revoga o token.
+  (ex.: faltando < 5 min) — sem atividade a sessão expira (RN57). `POST /auth/logout` encerra a sessão. Sessões são
+  persistidas: token de sessão encerrada (logout, renovação, usuário inativado, expiração) recebe 401.
 - **Perfis:** `ROLE_ADMIN` (A), `ROLE_OPERATOR` (O), `ROLE_VIEWER` (V); P = público (sem token).
 - **Respostas de erro** no formato *Problem Details* (RFC 7807), `Content-Type: application/problem+json`:
   ```json
@@ -323,7 +320,7 @@ Só CPF (RN04, sem `documentType`); `number` aceita "S/N". Menor de 18 anos ou `
 | `GET /manutencoes?status&equipamentoId&tipo` · `GET /manutencoes/{id}` | A,O | → `MaintenanceResponse[]` / `MaintenanceResponse` | ✅ |
 | `PUT /manutencoes/{id}` *(acréscimo)* | A,O | `{defectDescription?, technicalResponsible?}` (só em andamento) | ✅ |
 | `POST /manutencoes/{id}/custos` | A,O (ajuste só A) | `{type: PECA\|SERVICO, description, partReplaced?, amount, adjustment?, adjustmentReason?}` | ✅ |
-| `POST /manutencoes/{id}/encerrar` | A,O (INSERVIVEL só A) — *rev. 24/11: só A (UC23), G.9* | `{verdict: APTO\|INSERVIVEL, notes?}` → `MaintenanceResponse` | ✅ |
+| `POST /manutencoes/{id}/encerrar` | **A** (UC23) | `{verdict: APTO\|INSERVIVEL, notes?}` → `MaintenanceResponse` | ✅ |
 | `GET /manutencoes/preventivas-pendentes` | A,O | → `[{equipmentId, patrimonyNumber, type, lastMaintenanceDate, loanCycles, reason}]` | ✅ |
 
 `availableOperations` (RN15): `EMPRESTAR`, `REGISTRAR_ASSINATURA`, `REGISTRAR_DEVOLUCAO`, `RENOVAR`, `ABRIR_MANUTENCAO`,
@@ -334,6 +331,10 @@ Só CPF (RN04, sem `documentType`); `number` aceita "S/N". Menor de 18 anos ou `
 |---|---|---|---|
 | `POST /emprestimos` | A,O (retroativo só A) | `{beneficiaryId, equipmentId, orderId?, loanDate?, retroactiveJustification?, deliveryNotes?, deliveryPhotoUrl?}` → 201 `LoanResponse` (status `PENDENTE_ASSINATURA`) | ✅ |
 | `GET /emprestimos?status&beneficiarioId&equipamentoId&inicio&fim&tipo` | A,O | → `LoanResponse[]` | ✅ |
+| `POST /emprestimos/renovacao-publica` | **P** | `{cpf, birthDate, patrimonyNumber}` → `{patrimonyNumber, equipmentTypeDescription, previousExpectedReturnDate, expectedReturnDate, renewalCount, maxRenewals}` (UC16; 422 genérico se não confere; 429 após 5 tentativas/15 min por IP ou CPF) | ✅ |
+| `POST /sincronizacao` | A,O | `{operations: [{clientOperationId, type: RETIRADA\|DEVOLUCAO\|RENOVACAO, occurredAt, beneficiaryId?, equipmentId?, loanId?, returnCondition?, damageDescription?, deliveryNotes?}]}` (máx. 200) → `[{clientOperationId, type, status: APLICADA\|RECUSADA\|CONFLITO\|DUPLICADA, message, loanId, conflictId}]` (RN60) | ✅ |
+| `GET /sincronizacao/conflitos?status` · `GET /sincronizacao/conflitos/{id}` | A,O | → `SyncConflictResponse[]` / `SyncConflictResponse` | ✅ |
+| `PATCH /sincronizacao/conflitos/{id}/resolver` | A | `{note}` → `SyncConflictResponse` | ✅ |
 | `GET /emprestimos/{id}` | A,O | → `LoanResponse` com `renewals[]`, `returnInfo`, `adjustments[]`, `canRenew`, `renewalBlockers[]`, `whatsappLink` | ✅ |
 | `GET /emprestimos/{id}/termo` | A,O | → `application/pdf` (RN61) | ✅ |
 | `GET /emprestimos/{id}/termo-assinado` *(acréscimo)* | A,O | → PDF/JPG/PNG digitalizado | ✅ |
@@ -363,13 +364,13 @@ signedDocumentAvailable, overdue, daysOverdue, dueSoon, returnedAt, cancelReason
 | `GET /notificacoes?status&tipo&destinatario&beneficiarioId` | A,O | → `NotificationResponse[]` | ✅ |
 | `GET /notificacoes/contatos-manuais` | A,O | → `NotificationResponse[]` com `waLink` (botão "Lembrar no WhatsApp") | ✅ |
 | `PATCH /notificacoes/{id}/concluir` | A,O | — → `NotificationResponse` | ✅ |
-| `GET /notificacoes/resumo-diario` | A | (RN49) | ❌ |
+| `GET /notificacoes/resumo-diario` | A | → `{date, generatedAt, overdueLoans[], expiredReservations[], openMaintenances[], preventiveDue[]}` (RN49) | ✅ |
 
 #### Dashboard, relatórios, ajuda, assistente e parâmetros
 | Método e rota | Perfis | Corpo → Resposta | Status |
 |---|---|---|---|
-| `GET /dashboard?inicio&fim&tipo` | A,O,V | indicadores (Consulta só números — RN56) | ❌ |
-| `GET /relatorios/{tipo}?formato=CSV\|PDF&inicio&fim&tipoEquipamento` | A,O,V | arquivo (mascarado p/ Consulta — RN43) | ❌ |
+| `GET /dashboard?inicio&fim&tipo` | A,O,V | → `{start, end, equipmentType, generatedAt, personalDataHidden, occupancy{activeEquipments, available, reserved, loaned, inMaintenance, writtenOff, occupancyRate}, overdueLoans, waitlist{waiting, reserved}, maintenanceCost, loanVolume{loans, canceled, returns, openLoans}, byType[], overdueItems[]}` — período padrão 30 dias; Consulta recebe `overdueItems: null` (RN56) | ✅ |
+| `GET /relatorios/{tipo}?formato=CSV\|PDF&inicio&fim&tipoEquipamento` | A,O,V | arquivo para download (`Content-Disposition: attachment`). `tipo`: `INVENTARIO` (situação atual, inclui baixados), `EMPRESTIMOS`, `MANUTENCOES`, `ASSISTIDOS` (período padrão 30 dias — RN45). CSV: UTF-8 com BOM, `;`. Consulta: nome/CPF/telefone/endereço mascarados (RN43). Auditado como `EXPORT` (RN44) | ✅ |
 | `GET /ajuda/publico?tipo` | **P** | → `HelpContentResponse[]` | ✅ |
 | `GET /ajuda?tipo&todos` | A,O,V | → `HelpContentResponse[]` (filtrado pelo perfil; `todos=true` só Admin) | ✅ |
 | `POST /ajuda` · `PUT /ajuda/{id}` · `PATCH /ajuda/{id}/inativar` · `/ativar` | A | `{type, title, content, keywords?, audiences[], displayOrder?}` | ✅ |
@@ -388,10 +389,10 @@ signedDocumentAvailable, overdue, daysOverdue, dueSoon, returnedAt, cancelReason
    para o 1º da fila e gera o aviso (contato manual com link wa.me) → aprovar o pedido com o item reservado
    (`POST /pedidos/{id}/aprovar`) ou registrar a recusa (`POST /fila/{id}/recusa`).
 4. **Devolução:** `POST /emprestimos/{id}/devolucao` → `BOM_ESTADO`: item volta a DISPONIVEL (e já pode ser reservado
-   para a fila) · `PRECISA_MANUTENCAO`/`DANIFICADO`: manutenção corretiva aberta automaticamente (e, se danificado,
-   ocorrência que bloqueia o beneficiário até ser resolvida).
+   para a fila) · `PRECISA_MANUTENCAO`/`DANIFICADO`: manutenção corretiva aberta automaticamente e ocorrência de dano
+   que bloqueia o beneficiário até ser resolvida (RN40; `DANIFICADO` exige descrição).
 5. **Manutenção:** `POST /manutencoes/{id}/custos` → `PUT /manutencoes/{id}` (responsável técnico) →
-   `POST /manutencoes/{id}/encerrar {verdict: "APTO"}` → item DISPONIVEL.
+   `POST /manutencoes/{id}/encerrar {verdict: "APTO"}` (Admin) → item DISPONIVEL.
 6. **Etiqueta e leitura:** `GET /equipamentos/{id}/qrcode` (imprimir) → no celular, ler o QR e chamar
    `GET /equipamentos/leitura?codigo=PT-0001` → montar os botões a partir de `availableOperations`.
 7. **Sessão:** `POST /auth/login` → guardar `token` + `expiresAt` → `POST /auth/refresh` periódico com atividade →

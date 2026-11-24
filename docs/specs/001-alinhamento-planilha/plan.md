@@ -142,12 +142,16 @@ Regras: `validateOpening()` (RN36), `addCost(...)` (só EM_ANDAMENTO, salvo ajus
 ### HelpContent → `tb_help_contents`
 `type`, `title`, `content` (TEXT), `keywords (opc.)`, `audiences` (`Set<HelpAudience>`, `@ElementCollection`), `displayOrder`, `active`.
 
-### Previstas (rev. 24/11 — migration `V2` junto com a implementação)
-- **UserSession → `tb_user_sessions`** (RN57): `jti` (único), `username`, `issuedAt`, `expiresAt`, `lastRefreshAt (opc.)`,
-  `endedAt (opc.)`, `endReason (opc.: LOGOUT, EXPIRADA, REVOGADA)`. Substitui o `TokenRevocationService` em memória.
-- **SyncOperation → `tb_sync_operations`** e **SyncConflict → `tb_sync_conflicts`** (RN60): operação recebida
-  (`clientOperationId` único, `type`, `equipmentId`, `occurredAt`, `receivedAt`, `username`, `payload` JSON, `result`);
-  conflito (`equipmentId`, operação vencedora, operação recusada, `status`, `resolutionNote (opc.)`, `resolvedBy (opc.)`, `resolvedAt (opc.)`).
+### Frente G (rev. 24/11 — migration `V2__frente_g_sessoes_sincronizacao.sql`)
+- **UserSession → `tb_user_sessions`** (RN57): `jti` (único), `username`, `issuedAt`, `expiresAt`, `endedAt (opc.)`,
+  `endReason (opc.: LOGOUT, RENOVADA, EXPIRADA, REVOGADA)`. `SessionService` substituiu o `TokenRevocationService` em
+  memória: o filtro JWT recusa token cuja sessão foi encerrada; inativar usuário revoga as sessões dele.
+- **SyncOperation → `tb_sync_operations`** (RN60): `clientOperationId` (único), `type`, `beneficiaryId/equipmentId/loanId
+  (opc.)`, `occurredAt`, `receivedAt`, `username`, `result` (APLICADA, RECUSADA, CONFLITO, DUPLICADA), `message`,
+  `resultingLoanId (opc.)`, `conflictId (opc.)`.
+- **SyncConflict → `tb_sync_conflicts`** (RN60): `equipmentId`, `existingLoanId`, `clientOperationId`, `operationType`,
+  `incomingOccurredAt`, `existingOccurredAt`, `prevailing` (EXISTENTE/RECEBIDA), `description`, `status`
+  (PENDENTE/RESOLVIDO), `username`, `resolutionNote/resolvedBy/resolvedAt (opc.)`.
 
 ### 3.1 MER lógico → físico
 Tabela completa em `docs/banco-de-dados/README.md`. Resumo das diferenças intencionais: nomes físicos em inglês; ids
@@ -338,19 +342,27 @@ Legenda de perfis: **A** = ADMIN, **O** = OPERATOR, **V** = VIEWER, **P** = púb
 | `GET /assistente/perguntas?q=` | P | RN51 (só FAQ PUBLICO quando anônimo) |
 
 ## 8. Rotinas agendadas (`infrastructure.scheduler`, habilitadas por `lions.scheduling.enabled`, default `true`; `false` nos testes)
+Crons configuráveis em `lions.scheduling.cron.*` e fuso em `lions.scheduling.zone` (vazio = fuso do servidor, o mesmo do
+`Clock`; em produção usar `TZ=America/Sao_Paulo`). Cada job só delega ao serviço; falhas são logadas sem derrubar o agendador.
 | Job | Cron | Dono | RN |
 |---|---|---|---|
 | `OverdueLoanJob` | `0 0 1 * * *` | D | RN27, RN20, RN34 |
-| `ReservationExpirationJob` | `0 0 * * * *` | E | RN33 |
-| `DueDateReminderJob` | `0 0 8 * * *` | E | RN46, RN47, aviso de renovação elegível (RF12) |
-| `NotificationRetryJob` | `0 */15 * * * *` | E | RN48 |
-| `DailySummaryJob` | `0 0 7 * * *` | E | RN49 |
+| `ReservationExpirationJob` | `0 */15 * * * *` | E | RN33 |
+| `DueDateReminderJob` | `0 0 8 * * *` | E | RN46 (7 d, 1 d, no dia; atraso no 1º dia e a cada 3 d), RN47, aviso de renovação elegível (RF12) |
+| `NotificationRetryJob` | `0 5/15 * * * *` | E | RN48 |
+| `DailySummaryJob` | `0 0 7 * * *` | E | RN49 (notificação interna aos Admins, uma vez por dia) |
 | `PreventiveMaintenanceJob` | `0 30 1 * * *` | C | RN39 (notifica Admin uma vez por item/mês) |
-| `SessionExpirationJob` *(rev. 24/11)* | `0 */5 * * * *` | A | RN57 (audita `SESSION_EXPIRED`) |
+| `SessionExpirationJob` | `0 */5 * * * *` | A | RN57 (audita `SESSION_EXPIRED`) |
 
 ## 9. Segurança
 - JWT HS256 com `jti`; `lions.security.jwt.expiration-ms: 1800000` (30 min); segredo via `LIONS_JWT_SECRET` (default só dev).
-- `TokenRevocationService` em memória (`jti` → expiração) consultado pelo filtro — *rev. 24/11:* passa a usar `tb_user_sessions` (RN57).
+- Sessões persistidas (`SessionService` + `tb_user_sessions`, RN57) consultadas pelo filtro JWT; logout, renovação e
+  inativação do usuário encerram a sessão.
+- Rota pública de renovação (UC16) com limite de tentativas por IP e por CPF (`AttemptLimiter`, padrão 5 a cada 15 min
+  → 429). Atrás de proxy reverso, configure `server.forward-headers-strategy` para o IP real chegar à aplicação.
+- Notificações (RN47): `lions.notification.mode` = `auto` (padrão) | `manual` | `simulate`; e-mail por `spring.mail.*` +
+  `lions.notification.email.from`; SMS/WhatsApp pela Twilio (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`,
+  `TWILIO_SMS_FROM`, `TWILIO_WHATSAPP_FROM`). Canal sem provedor configurado → contato manual.
 - Públicos: `POST /auth/login`, `POST /pedidos`, `POST /emprestimos/renovacao-publica` *(rev. 24/11)*, `GET /cep/**`, `GET /ajuda/publico`, `GET /assistente/perguntas`, Swagger, `/h2-console/**` (só dev), `/actuator/health`.
 - Removidos: `/auth/register`, `GET /pedidos/{id}/termo` e `POST /pedidos/{id}/aceite-termo` públicos (expunham dados pessoais por id sequencial).
 - Admin inicial configurável: `lions.security.default-admin.username|password` (default `marcio` / `Lions@123`, senha forte).

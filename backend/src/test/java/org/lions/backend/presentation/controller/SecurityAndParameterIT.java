@@ -9,7 +9,8 @@ import org.lions.backend.domain.enums.UserRole;
 import org.lions.backend.domain.repository.AuditLogRepositoryPort;
 import org.lions.backend.domain.repository.UserRepositoryPort;
 import org.lions.backend.infrastructure.security.JwtTokenProvider;
-import org.lions.backend.infrastructure.security.TokenRevocationService;
+import org.lions.backend.application.service.auth.SessionService;
+import org.lions.backend.domain.enums.SessionEndReason;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -48,7 +49,7 @@ class SecurityAndParameterIT {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
     @Autowired
-    private TokenRevocationService revocationService;
+    private SessionService sessionService;
     @Autowired
     private AuthenticationManager authenticationManager;
     @Autowired
@@ -111,11 +112,12 @@ class SecurityAndParameterIT {
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken("marcio", "Lions@123"));
         String token = jwtTokenProvider.generateToken(auth);
+        sessionService.start(jwtTokenProvider.getJti(token), "marcio", jwtTokenProvider.getExpiration(token));
 
         mockMvc.perform(get(PARAMS).header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isOk());
 
-        revocationService.revoke(jwtTokenProvider.getJti(token), jwtTokenProvider.getExpiration(token));
+        sessionService.end(jwtTokenProvider.getJti(token), SessionEndReason.LOGOUT);
 
         mockMvc.perform(get(PARAMS).header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isUnauthorized());
@@ -180,6 +182,85 @@ class SecurityAndParameterIT {
     void deveRetornar403QuandoOperadorAlteraParametro() throws Exception {
         mockMvc.perform(put(PARAMS + "/" + ParameterService.LOAN_MAX_RENEWALS)
                         .contentType(MediaType.APPLICATION_JSON).content("{\"value\":\"3\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "admin.teste", roles = "ADMIN")
+    void devePermitirResumoDiarioQuandoAdmin() throws Exception {
+        mockMvc.perform(get("/api/v1/notificacoes/resumo-diario"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.overdueLoans").isArray())
+                .andExpect(jsonPath("$.expiredReservations").isArray())
+                .andExpect(jsonPath("$.openMaintenances").isArray())
+                .andExpect(jsonPath("$.preventiveDue").isArray());
+    }
+
+    @Test
+    @WithMockUser(username = "operador.teste", roles = "OPERATOR")
+    void deveNegarResumoDiarioQuandoOperador() throws Exception {
+        mockMvc.perform(get("/api/v1/notificacoes/resumo-diario")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "operador.teste", roles = "OPERATOR")
+    void deveNegarEncerramentoDeManutencaoQuandoOperador() throws Exception {
+        mockMvc.perform(post("/api/v1/manutencoes/1/encerrar")
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"verdict\":\"APTO\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    private String loginToken() throws Exception {
+        String body = mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"marcio\",\"password\":\"Lions@123\"}"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        return com.jayway.jsonpath.JsonPath.read(body, "$.token");
+    }
+
+    @Test
+    void deveRecusarTokenQuandoLogoutOuRenovado() throws Exception {
+        String first = loginToken();
+        String refreshed = com.jayway.jsonpath.JsonPath.read(mockMvc.perform(post("/api/v1/auth/refresh")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + first))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(), "$.token");
+
+        // RN57 — o token anterior à renovação deixa de valer (sessão RENOVADA persistida)
+        mockMvc.perform(get(PARAMS).header(HttpHeaders.AUTHORIZATION, "Bearer " + first))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get(PARAMS).header(HttpHeaders.AUTHORIZATION, "Bearer " + refreshed))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/auth/logout").header(HttpHeaders.AUTHORIZATION, "Bearer " + refreshed))
+                .andExpect(status().is2xxSuccessful());
+        mockMvc.perform(get(PARAMS).header(HttpHeaders.AUTHORIZATION, "Bearer " + refreshed))
+                .andExpect(status().isUnauthorized());
+        assertThat(sessionService.isRevoked(jwtTokenProvider.getJti(refreshed))).isTrue();
+    }
+
+    @Test
+    @WithMockUser(username = "operador.teste", roles = "OPERATOR")
+    void deveValidarLoteDeSincronizacaoQuandoOperacaoFutura() throws Exception {
+        String future = java.time.LocalDateTime.now().plusDays(1).withNano(0).toString();
+        mockMvc.perform(post("/api/v1/sincronizacao").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"operations\":[{\"clientOperationId\":\"x1\",\"type\":\"RENOVACAO\","
+                                + "\"occurredAt\":\"" + future + "\",\"loanId\":1}]}"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/v1/sincronizacao").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"operations\":[]}"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/api/v1/sincronizacao/conflitos")).andExpect(status().isOk());
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .patch("/api/v1/sincronizacao/conflitos/1/resolver")
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"note\":\"ok\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "consulta.teste", roles = "VIEWER")
+    void deveNegarSincronizacaoQuandoPerfilConsulta() throws Exception {
+        mockMvc.perform(post("/api/v1/sincronizacao").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"operations\":[{\"clientOperationId\":\"v1\",\"type\":\"RENOVACAO\","
+                                + "\"occurredAt\":\"2025-01-01T10:00:00\",\"loanId\":1}]}"))
                 .andExpect(status().isForbidden());
     }
 }
