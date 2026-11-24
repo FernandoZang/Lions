@@ -1,6 +1,7 @@
 # Andamento da implementação — Spec 001 (backend)
 
-> **Snapshot:** 18/11/2026 · branch `wip/onda1-servicos` (criada a partir de `new/one` @ `baa36fa`).
+> **Atualizado em 24/11/2026:** controllers REST da Onda 1 prontos (ver seções 1, 2 e 5).
+> **Snapshot original:** 18/11/2026 · branch `wip/onda1-servicos` (criada a partir de `new/one` @ `baa36fa`).
 > Documento gerado quando a execução foi **interrompida no meio da Onda 1**. Descreve o que está pronto, o que falta,
 > as decisões tomadas e o **contrato de API previsto** para o frontend.
 > Implementação feita **sem TDD** (a pedido): nenhum teste novo foi escrito nesta etapa.
@@ -12,62 +13,63 @@
 | Onda | Situação |
 |---|---|
 | **Onda 0 — Fundação** | ✅ Concluída (já estava pronta na branch). Verificado antes das mudanças: build ok e **172 testes verdes**. |
-| **Onda 1 — Frentes A–F** | 🟡 **Parcial.** Camada de aplicação (serviços, DTOs, portas e adaptadores) das frentes **A, B, C, D e E** escrita. **Nenhum controller REST novo** ainda. Frente **F** (dashboard/relatórios), rotinas agendadas e régua de lembretes/resumo diário **não iniciadas**. |
+| **Onda 1 — Frentes A–F** | 🟡 **Parcial.** Camada de aplicação (serviços, DTOs, portas e adaptadores) e **controllers REST** das frentes **A, B, C, D e E** prontos. Frente **F** (dashboard/relatórios), rotinas agendadas e régua de lembretes/resumo diário **não iniciadas**. |
 | **Onda 2 — Integração** | ❌ Não iniciada. |
 
-**Estado da build neste snapshot:** ⚠️ **não verificada** — o código novo da Onda 1 ainda **não foi compilado nem
-testado** (snapshot enviado antes da verificação). Primeiro passo ao retomar: `./gradlew build` e corrigir o que aparecer.
+**Estado da build (24/11/2026):** ✅ `./gradlew build` ok, **172 testes verdes** (os mesmos da Onda 0 — ainda sem
+testes das RNs novas). Os 14 controllers foram verificados subindo a aplicação e executando o fluxo completo pela API
+(pedido público → aprovação → termo PDF → assinatura digital/física → devolução com avaria → manutenção automática →
+encerramento APTO → reserva para o 1º da fila), além de 401/403 por perfil, refresh/logout com revogação e Swagger
+(15 tags). A consulta de CEP responde 503 quando o ViaCEP não está acessível (comportamento previsto).
 
-**O que funciona hoje em execução (HTTP):** apenas o que já existia na Onda 0 — `GET/PUT /api/v1/parametros`,
-`/actuator/health` e Swagger (`/swagger-ui.html`). Os serviços novos existem, mas **ainda não estão expostos por
-endpoints** (falta a camada `presentation.controller`). Login (`POST /auth/login`) também depende do `AuthController`,
-que ainda não foi criado.
+**O que funciona hoje em execução (HTTP):** todas as rotas ✅ da seção 6. Ainda não existem: rotinas agendadas,
+resumo diário (E.4), dashboard e relatórios (Frente F).
 
 ---
 
 ## 2. Status por tarefa (`tasks.md`)
 
-Legenda: ✅ pronto · 🟡 serviço pronto, falta controller/job · ❌ não iniciado
+Legenda: ✅ serviço + rota prontos (testes automatizados das RNs ainda pendentes) · 🟡 falta job/seed indicado · ❌ não iniciado
 
 ### Frente A — Acesso, ajuda e assistente
 | Tarefa | Status | Onde |
 |---|---|---|
-| A.1 Login/refresh/logout/troca de senha (RN57) + auditoria | 🟡 | `application/service/auth/AuthService` |
-| A.2 CRUD de usuários, perfil, inativação, redefinição de senha (RN01–RN03) | 🟡 | `application/service/user/UserService` |
+| A.1 Login/refresh/logout/troca de senha (RN57) + auditoria | ✅ | `application/service/auth/AuthService` |
+| A.2 CRUD de usuários, perfil, inativação, redefinição de senha (RN01–RN03) | ✅ | `application/service/user/UserService` |
 | A.3 Conteúdo de ajuda (RN53) + FAQ pública + seed `dev` | 🟡 (seed `dev` ❌) | `application/service/help/HelpContentService` |
-| A.4 Assistente por regras: sugestão de alocação + busca de FAQ (RN50, RN51) | 🟡 | `application/service/assistant/AssistantService` |
+| A.4 Assistente por regras: sugestão de alocação + busca de FAQ (RN50, RN51) | ✅ | `application/service/assistant/AssistantService` |
 
 ### Frente B — Beneficiários, solicitações e histórico
 | Tarefa | Status | Onde |
 |---|---|---|
-| B.1 CRUD + consentimento + inativação/reativação + anonimização (RN03–RN08, RN34, RN59) | 🟡 | `application/service/beneficiary/BeneficiaryService` |
-| B.2 Histórico consolidado (RN42) | 🟡 | `BeneficiaryService.history` |
-| B.3 Pedido público + aprovação (→ `LoanService.registerLoan`) + rejeição + fila (+ cancelamento) | 🟡 | `application/service/order/LoanOrderService` |
-| B.4 Consulta CEP | 🟡 | `AddressService` + `infrastructure/client/ViaCepAddressLookupAdapter` |
+| B.1 CRUD + consentimento + inativação/reativação + anonimização (RN03–RN08, RN34, RN59) | ✅ | `application/service/beneficiary/BeneficiaryService` |
+| B.2 Histórico consolidado (RN42) | ✅ | `BeneficiaryService.history` |
+| B.3 Pedido público + aprovação (→ `LoanService.registerLoan`) + rejeição + fila (+ cancelamento) | ✅ | `application/service/order/LoanOrderService` |
+| B.4 Consulta CEP | ✅ | `AddressService` + `infrastructure/client/ViaCepAddressLookupAdapter` |
 
 ### Frente C — Equipamentos, QR Code e manutenção
 | Tarefa | Status | Onde |
 |---|---|---|
-| C.1 Cadastro (patrimônio gerado), edição restrita, filtros, baixa (RN09, RN11–RN14) | 🟡 | `application/service/equipment/EquipmentService` |
-| C.2 QR Code PNG + leitura com operações disponíveis (RN10, RN15) | 🟡 | `EquipmentService.qrCode/scan` + `infrastructure/qrcode/ZxingQrCodeAdapter` |
-| C.3 Manutenção: abertura, custos/ajustes, encerramento, listener de avaria (RN24, RN35–RN38, RN41) | 🟡 | `application/service/maintenance/MaintenanceService` |
+| C.1 Cadastro (patrimônio gerado), edição restrita, filtros, baixa (RN09, RN11–RN14) | ✅ | `application/service/equipment/EquipmentService` |
+| C.2 QR Code PNG + leitura com operações disponíveis (RN10, RN15) | ✅ | `EquipmentService.qrCode/scan` + `infrastructure/qrcode/ZxingQrCodeAdapter` |
+| C.3 Manutenção: abertura, custos/ajustes, encerramento, listener de avaria (RN24, RN35–RN38, RN41) | ✅ | `application/service/maintenance/MaintenanceService` |
 | C.4 Preventiva `findDue` + job (RN39) | 🟡 (job ❌) | `PreventiveMaintenanceService.findDue/notifyDue` |
-| C.5 Histórico do equipamento | 🟡 | `EquipmentService.history` |
+| C.5 Histórico do equipamento | ✅ | `EquipmentService.history` |
 
 ### Frente D — Empréstimos, termo, ocorrências e auditoria
 | Tarefa | Status | Onde |
 |---|---|---|
-| D.1 Registro de empréstimo (RN16–RN22, RN28) + termo PDF armazenado (RN06, RN21, RN61) | 🟡 | `application/service/loan/LoanService.registerLoan` |
-| D.2 Assinatura digital e física (RN21, RN25) | 🟡 | `LoanService.registerDigitalSignature/registerPhysicalSignature` |
-| D.3 Renovação (RN23), devolução + ocorrência + eventos (RN24, RN40), cancelamento (RN26), ajustes (RN41) | 🟡 | `LoanService.renew/registerReturn/cancel/addAdjustment` |
+| D.1 Registro de empréstimo (RN16–RN22, RN28) + termo PDF armazenado (RN06, RN21, RN61) | ✅ | `application/service/loan/LoanService.registerLoan` |
+| D.2 Assinatura digital e física (RN21, RN25) | ✅ | `LoanService.registerDigitalSignature/registerPhysicalSignature` |
+| D.3 Renovação (RN23), devolução + ocorrência + eventos (RN24, RN40), cancelamento (RN26), ajustes (RN41) | ✅ | `LoanService.renew/registerReturn/cancel/addAdjustment` |
 | D.4 `BeneficiaryRestrictionService` (RN08, RN20) | ✅ | `application/service/loan/BeneficiaryRestrictionService` |
 | D.5 Job de atraso/inadimplência (RN27) + ocorrências (listar/resolver) | 🟡 (job ❌) | `LoanOverdueService`, `OccurrenceService` |
-| D.6 Consulta de auditoria (RN58) + histórico de empréstimos com filtros (RF10) | 🟡 | `AuditService.search` (Onda 0), `LoanService.findAll` |
+| D.6 Consulta de auditoria (RN58) + histórico de empréstimos com filtros (RF10) | ✅ | `AuditService.search` (Onda 0), `LoanService.findAll` |
 
 ### Frente E — Fila de espera e notificações
 | Tarefa | Status | Onde |
 |---|---|---|
-| E.1 Entrada na fila, ordenação, prioridade, recusa, remoção (RN29–RN31, RN33, RN34) | 🟡 | `application/service/waitlist/WaitlistService` |
+| E.1 Entrada na fila, ordenação, prioridade, recusa, remoção (RN29–RN31, RN33, RN34) | ✅ | `application/service/waitlist/WaitlistService` |
 | E.2 Reserva automática por evento + expiração (RN32, RN33) | 🟡 (job ❌) | `WaitlistService.onEquipmentAvailable/expireReservations` |
 | E.3 Envio por canal autorizado, porta + adaptador log/wa.me, retentativas, contato manual (RN47, RN48) | 🟡 (job ❌) | `NotificationService`, `application/port/NotificationSenderPort`, `infrastructure/notification/LogNotificationSenderAdapter` |
 | E.4 Régua de lembretes (RN46) e resumo diário (RN49) | ❌ | — |
@@ -170,9 +172,8 @@ e `BeneficiaryRestriction`.
 
 ## 5. Pendências — próximos passos (em ordem sugerida)
 
-1. **Controllers REST** (`presentation/controller`) com `@Tag/@Operation` e `@PreAuthorize`: `Auth`, `User`, `Beneficiary`,
-   `LoanOrder`, `Cep`, `Equipment`, `Maintenance`, `Loan`, `Occurrence`, `Audit`, `Waitlist`, `Notification`, `Help`,
-   `Assistant` (rotas na seção 6).
+1. ~~**Controllers REST**~~ ✅ feito em 24/11/2026 (14 controllers + `AuditService.searchResponses`). Acréscimos ao
+   contrato: `GET /ajuda/{id}` (A), `GET /fila/{id}`, `GET /ocorrencias/{id}` e `GET /emprestimos/{id}/ajustes` (A,O).
 2. **Rotinas agendadas** (`infrastructure/scheduler`, com `@ConditionalOnSchedulingEnabled`): `OverdueLoanJob` →
    `LoanOverdueService`, `ReservationExpirationJob` → `WaitlistService.expireReservations`, `NotificationRetryJob` →
    `NotificationService.retryFailed`, `PreventiveMaintenanceJob` → `PreventiveMaintenanceService.notifyDue`,
@@ -184,8 +185,7 @@ e `BeneficiaryRestriction`.
    `application.yml`; seed de ajuda no perfil `dev`.
 6. **Propostas para o frontend** (fora do `plan.md`): `GET /api/v1/dominios` (enums + descrições, público) e upload de
    fotos `POST /api/v1/arquivos/fotos` (as URLs vão em `photoUrl`, `deliveryPhotoUrl`, `returnPhotoUrl`).
-7. **Teste existente a ajustar quando os controllers entrarem:** `SecurityAndParameterIT.devePermitirRotasPublicasQuandoAnonimo`
-   espera **404** em `POST /pedidos` e `GET /ajuda/publico` (passará a ser 400/200).
+7. ~~Ajustar `SecurityAndParameterIT.devePermitirRotasPublicasQuandoAnonimo`~~ ✅ agora espera 400/200.
 8. **Onda 2:** teste ponta a ponta (I.2), suíte verde (I.3) e docs (I.4 — `README.md`, `backend/README.md` e
    `docs/DESCRICAO_DO_PROJETO_E_BACKEND.md` ainda citam Maven, senha `lions123`, prazo de 90 dias e rotas antigas).
 9. **Testes das RNs** (adiados por decisão — sem TDD nesta etapa).
@@ -198,8 +198,8 @@ e `BeneficiaryRestriction`.
 
 ## 6. Contrato de API previsto (frontend ↔ backend)
 
-> ⚠️ **Previsto**: os formatos de entrada/saída abaixo já existem como DTOs e serviços; as rotas dependem dos
-> controllers (pendência 1). Coluna **Status**: ✅ disponível · 🟡 serviço pronto, rota pendente · ❌ não iniciado.
+> Rotas ✅ expostas pelos controllers em `presentation/controller` (verificadas ponta a ponta em 24/11/2026).
+> Rotas ❌ dependem da E.4 e da Frente F. Coluna **Status**: ✅ disponível · ❌ não iniciado.
 
 ### 6.1 Convenções (já implementadas na fundação)
 
@@ -238,40 +238,40 @@ e `BeneficiaryRestriction`.
 #### Autenticação e usuários (RF01)
 | Método e rota | Perfis | Corpo → Resposta | Status |
 |---|---|---|---|
-| `POST /auth/login` | P | `{username, password}` (usuário ou e-mail) → `AuthResponse {token, type:"Bearer", expiresIn, expiresAt, user}` | 🟡 |
-| `POST /auth/refresh` | A,O,V | — → `AuthResponse` (o token anterior é revogado) | 🟡 |
-| `POST /auth/logout` | A,O,V | — → 204 | 🟡 |
-| `GET /auth/me` *(acréscimo)* | A,O,V | — → `UserResponse` | 🟡 |
-| `PUT /auth/senha` | A,O,V | `{currentPassword, newPassword}` → 204 (senha forte, RN57) | 🟡 |
-| `GET /usuarios?perfil&ativo` · `GET /usuarios/{id}` | A | → `UserResponse[]` / `UserResponse` | 🟡 |
-| `POST /usuarios` | A | `{username, fullName?, email, password, role}` → 201 `UserResponse` | 🟡 |
-| `PUT /usuarios/{id}` | A | `{fullName?, email}` → `UserResponse` | 🟡 |
-| `PATCH /usuarios/{id}/perfil` | A | `{role}` → `UserResponse` (nunca o próprio — 422) | 🟡 |
-| `PATCH /usuarios/{id}/inativar` · `/ativar` | A | → `UserResponse` (não a si; mantém ≥ 1 Admin) | 🟡 |
-| `PATCH /usuarios/{id}/senha` | A | `{newPassword}` → 204 | 🟡 |
+| `POST /auth/login` | P | `{username, password}` (usuário ou e-mail) → `AuthResponse {token, type:"Bearer", expiresIn, expiresAt, user}` | ✅ |
+| `POST /auth/refresh` | A,O,V | — → `AuthResponse` (o token anterior é revogado) | ✅ |
+| `POST /auth/logout` | A,O,V | — → 204 | ✅ |
+| `GET /auth/me` *(acréscimo)* | A,O,V | — → `UserResponse` | ✅ |
+| `PUT /auth/senha` | A,O,V | `{currentPassword, newPassword}` → 204 (senha forte, RN57) | ✅ |
+| `GET /usuarios?perfil&ativo` · `GET /usuarios/{id}` | A | → `UserResponse[]` / `UserResponse` | ✅ |
+| `POST /usuarios` | A | `{username, fullName?, email, password, role}` → 201 `UserResponse` | ✅ |
+| `PUT /usuarios/{id}` | A | `{fullName?, email}` → `UserResponse` | ✅ |
+| `PATCH /usuarios/{id}/perfil` | A | `{role}` → `UserResponse` (nunca o próprio — 422) | ✅ |
+| `PATCH /usuarios/{id}/inativar` · `/ativar` | A | → `UserResponse` (não a si; mantém ≥ 1 Admin) | ✅ |
+| `PATCH /usuarios/{id}/senha` | A | `{newPassword}` → 204 | ✅ |
 
 `UserResponse`: `{id, username, fullName, email, role, roleDescription, active, lastLoginAt, createdAt, updatedAt}`.
 
 #### Beneficiários, solicitações e CEP (RF02, RF09)
 | Método e rota | Perfis | Corpo → Resposta | Status |
 |---|---|---|---|
-| `POST /beneficiarios` | A,O | `BeneficiaryRequest` → 201 `BeneficiaryResponse` (409 + `existingId` se documento ativo duplicado) | 🟡 |
-| `GET /beneficiarios?nome&documento&ativo` | A,O | → `BeneficiarySummaryResponse[]` (documento mascarado) | 🟡 |
-| `GET /beneficiarios/{id}` | A,O | → `BeneficiaryResponse` | 🟡 |
-| `PUT /beneficiarios/{id}` | A,O | `BeneficiaryRequest` (consentimento ignorado) → `BeneficiaryResponse` | 🟡 |
-| `PUT /beneficiarios/{id}/consentimento` | A,O | `{consentGranted:true, notificationChannels[], consentGivenBy?}` → `BeneficiaryResponse` | 🟡 |
-| `PATCH /beneficiarios/{id}/inativar` | A | `{reason}` → `BeneficiaryResponse` (422 se empréstimo/ocorrência/fila — RN08) | 🟡 |
-| `PATCH /beneficiarios/{id}/reativar` | A | → `BeneficiaryResponse` | 🟡 |
-| `POST /beneficiarios/{id}/anonimizar` | A | → `BeneficiaryResponse` | 🟡 |
-| `GET /beneficiarios/{id}/historico` | A,O | → `{beneficiary, restriction, loans[], orders[], waitlist[], occurrences[]}` | 🟡 |
-| `GET /beneficiarios/{id}/situacao` *(acréscimo)* | A,O | → `BeneficiaryRestriction {blocked, reasons[], ...}` | 🟡 |
-| `POST /pedidos` | **P** | `LoanOrderCreateRequest` → 201 `{id, status, statusDescription, createdAt, message}` | 🟡 |
-| `GET /pedidos?status&tipo&beneficiarioId` · `GET /pedidos/{id}` | A,O | → `LoanOrderResponse[]` / `LoanOrderResponse` | 🟡 |
-| `POST /pedidos/{id}/aprovar` | A,O | `{equipmentId, loanDate?, retroactiveJustification?, deliveryNotes?, deliveryPhotoUrl?}` → `{order, loan}` | 🟡 |
-| `POST /pedidos/{id}/rejeitar` | A,O | `{reason}` → `LoanOrderResponse` | 🟡 |
-| `POST /pedidos/{id}/fila` | A,O | — → `{order, waitlistEntry}` | 🟡 |
-| `POST /pedidos/{id}/cancelar` *(acréscimo)* | A,O | `{reason}` → `LoanOrderResponse` | 🟡 |
-| `GET /cep/{cep}` | **P** | → `{cep, street, complement, neighborhood, city, state, ibgeCode, ddd}` (404 inexistente, 503 indisponível) | 🟡 |
+| `POST /beneficiarios` | A,O | `BeneficiaryRequest` → 201 `BeneficiaryResponse` (409 + `existingId` se documento ativo duplicado) | ✅ |
+| `GET /beneficiarios?nome&documento&ativo` | A,O | → `BeneficiarySummaryResponse[]` (documento mascarado) | ✅ |
+| `GET /beneficiarios/{id}` | A,O | → `BeneficiaryResponse` | ✅ |
+| `PUT /beneficiarios/{id}` | A,O | `BeneficiaryRequest` (consentimento ignorado) → `BeneficiaryResponse` | ✅ |
+| `PUT /beneficiarios/{id}/consentimento` | A,O | `{consentGranted:true, notificationChannels[], consentGivenBy?}` → `BeneficiaryResponse` | ✅ |
+| `PATCH /beneficiarios/{id}/inativar` | A | `{reason}` → `BeneficiaryResponse` (422 se empréstimo/ocorrência/fila — RN08) | ✅ |
+| `PATCH /beneficiarios/{id}/reativar` | A | → `BeneficiaryResponse` | ✅ |
+| `POST /beneficiarios/{id}/anonimizar` | A | → `BeneficiaryResponse` | ✅ |
+| `GET /beneficiarios/{id}/historico` | A,O | → `{beneficiary, restriction, loans[], orders[], waitlist[], occurrences[]}` | ✅ |
+| `GET /beneficiarios/{id}/situacao` *(acréscimo)* | A,O | → `BeneficiaryRestriction {blocked, reasons[], ...}` | ✅ |
+| `POST /pedidos` | **P** | `LoanOrderCreateRequest` → 201 `{id, status, statusDescription, createdAt, message}` | ✅ |
+| `GET /pedidos?status&tipo&beneficiarioId` · `GET /pedidos/{id}` | A,O | → `LoanOrderResponse[]` / `LoanOrderResponse` | ✅ |
+| `POST /pedidos/{id}/aprovar` | A,O | `{equipmentId, loanDate?, retroactiveJustification?, deliveryNotes?, deliveryPhotoUrl?}` → `{order, loan}` | ✅ |
+| `POST /pedidos/{id}/rejeitar` | A,O | `{reason}` → `LoanOrderResponse` | ✅ |
+| `POST /pedidos/{id}/fila` | A,O | — → `{order, waitlistEntry}` | ✅ |
+| `POST /pedidos/{id}/cancelar` *(acréscimo)* | A,O | `{reason}` → `LoanOrderResponse` | ✅ |
+| `GET /cep/{cep}` | **P** | → `{cep, street, complement, neighborhood, city, state, ibgeCode, ddd}` (404 inexistente, 503 indisponível) | ✅ |
 
 `BeneficiaryRequest` (RN04–RN07):
 ```json
@@ -299,20 +299,20 @@ Menor de 18 anos ou `legallyIncapable=true` exige `legalGuardianName` + `legalGu
 #### Equipamentos, QR Code e manutenção (RF03, RF04, RF08)
 | Método e rota | Perfis | Corpo → Resposta | Status |
 |---|---|---|---|
-| `POST /equipamentos` | A,O | `{type, size?, condition, notes?, photoUrl?}` → 201 `EquipmentResponse` (patrimônio `PT-0001` gerado) | 🟡 |
-| `GET /equipamentos?status&tipo&condicao` | A,O,V | → `EquipmentResponse[]` | 🟡 |
-| `GET /equipamentos/{id}` · `GET /equipamentos/patrimonio/{numero}` | A,O,V | → `EquipmentResponse` | 🟡 |
-| `PUT /equipamentos/{id}` | A,O | `{type?, size?, condition?, notes?, photoUrl?}` → `EquipmentResponse` | 🟡 |
-| `POST /equipamentos/{id}/baixa` | A | `{reason: INSERVIVEL\|PERDA\|FURTO\|DOACAO, notes?}` → `EquipmentResponse` | 🟡 |
-| `GET /equipamentos/{id}/qrcode?tamanho=300` | A,O | → `image/png` (conteúdo = número de patrimônio) | 🟡 |
-| `GET /equipamentos/leitura?codigo=PT-0001` | A,O | → `{equipment, availableOperations[], currentLoanId, currentBeneficiaryName, expectedReturnDate, openMaintenanceId, reservedForBeneficiaryName, ...}` | 🟡 |
-| `GET /equipamentos/{id}/historico` | A,O | → `{equipment, loans[], maintenances[], loanCount, totalMaintenanceCost}` | 🟡 |
-| `POST /manutencoes` | A,O | `{equipmentId, type?, defectDescription, entryDate?, technicalResponsible}` → 201 `MaintenanceResponse` | 🟡 |
-| `GET /manutencoes?status&equipamentoId&tipo` · `GET /manutencoes/{id}` | A,O | → `MaintenanceResponse[]` / `MaintenanceResponse` | 🟡 |
-| `PUT /manutencoes/{id}` *(acréscimo)* | A,O | `{defectDescription?, technicalResponsible?}` (só em andamento) | 🟡 |
-| `POST /manutencoes/{id}/custos` | A,O (ajuste só A) | `{type: PECA\|SERVICO, description, partReplaced?, amount, adjustment?, adjustmentReason?}` | 🟡 |
-| `POST /manutencoes/{id}/encerrar` | A,O (INSERVIVEL só A) | `{verdict: APTO\|INSERVIVEL, notes?}` → `MaintenanceResponse` | 🟡 |
-| `GET /manutencoes/preventivas-pendentes` | A,O | → `[{equipmentId, patrimonyNumber, type, lastMaintenanceDate, loanCycles, reason}]` | 🟡 |
+| `POST /equipamentos` | A,O | `{type, size?, condition, notes?, photoUrl?}` → 201 `EquipmentResponse` (patrimônio `PT-0001` gerado) | ✅ |
+| `GET /equipamentos?status&tipo&condicao` | A,O,V | → `EquipmentResponse[]` | ✅ |
+| `GET /equipamentos/{id}` · `GET /equipamentos/patrimonio/{numero}` | A,O,V | → `EquipmentResponse` | ✅ |
+| `PUT /equipamentos/{id}` | A,O | `{type?, size?, condition?, notes?, photoUrl?}` → `EquipmentResponse` | ✅ |
+| `POST /equipamentos/{id}/baixa` | A | `{reason: INSERVIVEL\|PERDA\|FURTO\|DOACAO, notes?}` → `EquipmentResponse` | ✅ |
+| `GET /equipamentos/{id}/qrcode?tamanho=300` | A,O | → `image/png` (conteúdo = número de patrimônio) | ✅ |
+| `GET /equipamentos/leitura?codigo=PT-0001` | A,O | → `{equipment, availableOperations[], currentLoanId, currentBeneficiaryName, expectedReturnDate, openMaintenanceId, reservedForBeneficiaryName, ...}` | ✅ |
+| `GET /equipamentos/{id}/historico` | A,O | → `{equipment, loans[], maintenances[], loanCount, totalMaintenanceCost}` | ✅ |
+| `POST /manutencoes` | A,O | `{equipmentId, type?, defectDescription, entryDate?, technicalResponsible}` → 201 `MaintenanceResponse` | ✅ |
+| `GET /manutencoes?status&equipamentoId&tipo` · `GET /manutencoes/{id}` | A,O | → `MaintenanceResponse[]` / `MaintenanceResponse` | ✅ |
+| `PUT /manutencoes/{id}` *(acréscimo)* | A,O | `{defectDescription?, technicalResponsible?}` (só em andamento) | ✅ |
+| `POST /manutencoes/{id}/custos` | A,O (ajuste só A) | `{type: PECA\|SERVICO, description, partReplaced?, amount, adjustment?, adjustmentReason?}` | ✅ |
+| `POST /manutencoes/{id}/encerrar` | A,O (INSERVIVEL só A) | `{verdict: APTO\|INSERVIVEL, notes?}` → `MaintenanceResponse` | ✅ |
+| `GET /manutencoes/preventivas-pendentes` | A,O | → `[{equipmentId, patrimonyNumber, type, lastMaintenanceDate, loanCycles, reason}]` | ✅ |
 
 `availableOperations` (RN15): `EMPRESTAR`, `REGISTRAR_ASSINATURA`, `REGISTRAR_DEVOLUCAO`, `RENOVAR`, `ABRIR_MANUTENCAO`,
 `LANCAR_CUSTO`, `ENCERRAR_MANUTENCAO`, `BAIXAR` (só Admin), `EDITAR`, `IMPRIMIR_QRCODE`, `VER_HISTORICO`.
@@ -320,20 +320,20 @@ Menor de 18 anos ou `legallyIncapable=true` exige `legalGuardianName` + `legalGu
 #### Empréstimos, termo, ocorrências e auditoria (RF05, RF07, RF10)
 | Método e rota | Perfis | Corpo → Resposta | Status |
 |---|---|---|---|
-| `POST /emprestimos` | A,O (retroativo só A) | `{beneficiaryId, equipmentId, orderId?, loanDate?, retroactiveJustification?, deliveryNotes?, deliveryPhotoUrl?}` → 201 `LoanResponse` (status `PENDENTE_ASSINATURA`) | 🟡 |
-| `GET /emprestimos?status&beneficiarioId&equipamentoId&inicio&fim&tipo` | A,O | → `LoanResponse[]` | 🟡 |
-| `GET /emprestimos/{id}` | A,O | → `LoanResponse` com `renewals[]`, `returnInfo`, `adjustments[]`, `canRenew`, `renewalBlockers[]`, `whatsappLink` | 🟡 |
-| `GET /emprestimos/{id}/termo` | A,O | → `application/pdf` (RN61) | 🟡 |
-| `GET /emprestimos/{id}/termo-assinado` *(acréscimo)* | A,O | → PDF/JPG/PNG digitalizado | 🟡 |
-| `POST /emprestimos/{id}/assinatura-digital` | A,O | `{signerName?}` → `LoanResponse` (status `ATIVO`) | 🟡 |
-| `POST /emprestimos/{id}/assinatura-fisica` | A,O | `multipart/form-data`: `file` (PDF/JPG/PNG ≤ 10 MB) + `signerName?` → `LoanResponse` | 🟡 |
-| `POST /emprestimos/{id}/renovacao` | A,O | — → `LoanResponse` (RN23) | 🟡 |
-| `POST /emprestimos/{id}/devolucao` | A,O | `{returnCondition: BOM_ESTADO\|PRECISA_MANUTENCAO\|DANIFICADO, damageDescription?, returnPhotoUrl?, returnDate?}` → `LoanResponse` | 🟡 |
-| `POST /emprestimos/{id}/cancelamento` | A | `{reason}` → `LoanResponse` | 🟡 |
-| `POST /emprestimos/{id}/ajustes` | A | `{description, reason}` → `{id, description, reason, registeredBy, registeredAt}` | 🟡 |
-| `GET /ocorrencias?beneficiarioId&status&tipo` | A,O | → `OccurrenceResponse[]` | 🟡 |
-| `PATCH /ocorrencias/{id}/resolver` | A | `{note}` → `OccurrenceResponse` | 🟡 |
-| `GET /auditoria?entidade&entidadeId&inicio&fim` | A | → `[{id, entityName, entityId, action, actionDescription, username, automatic, originRule, details, occurredAt}]` | 🟡 |
+| `POST /emprestimos` | A,O (retroativo só A) | `{beneficiaryId, equipmentId, orderId?, loanDate?, retroactiveJustification?, deliveryNotes?, deliveryPhotoUrl?}` → 201 `LoanResponse` (status `PENDENTE_ASSINATURA`) | ✅ |
+| `GET /emprestimos?status&beneficiarioId&equipamentoId&inicio&fim&tipo` | A,O | → `LoanResponse[]` | ✅ |
+| `GET /emprestimos/{id}` | A,O | → `LoanResponse` com `renewals[]`, `returnInfo`, `adjustments[]`, `canRenew`, `renewalBlockers[]`, `whatsappLink` | ✅ |
+| `GET /emprestimos/{id}/termo` | A,O | → `application/pdf` (RN61) | ✅ |
+| `GET /emprestimos/{id}/termo-assinado` *(acréscimo)* | A,O | → PDF/JPG/PNG digitalizado | ✅ |
+| `POST /emprestimos/{id}/assinatura-digital` | A,O | `{signerName?}` → `LoanResponse` (status `ATIVO`) | ✅ |
+| `POST /emprestimos/{id}/assinatura-fisica` | A,O | `multipart/form-data`: `file` (PDF/JPG/PNG ≤ 10 MB) + `signerName?` → `LoanResponse` | ✅ |
+| `POST /emprestimos/{id}/renovacao` | A,O | — → `LoanResponse` (RN23) | ✅ |
+| `POST /emprestimos/{id}/devolucao` | A,O | `{returnCondition: BOM_ESTADO\|PRECISA_MANUTENCAO\|DANIFICADO, damageDescription?, returnPhotoUrl?, returnDate?}` → `LoanResponse` | ✅ |
+| `POST /emprestimos/{id}/cancelamento` | A | `{reason}` → `LoanResponse` | ✅ |
+| `POST /emprestimos/{id}/ajustes` | A | `{description, reason}` → `{id, description, reason, registeredBy, registeredAt}` | ✅ |
+| `GET /ocorrencias?beneficiarioId&status&tipo` | A,O | → `OccurrenceResponse[]` | ✅ |
+| `PATCH /ocorrencias/{id}/resolver` | A | `{note}` → `OccurrenceResponse` | ✅ |
+| `GET /auditoria?entidade&entidadeId&inicio&fim` | A | → `[{id, entityName, entityId, action, actionDescription, username, automatic, originRule, details, occurredAt}]` | ✅ |
 
 `LoanResponse` (principais campos): `id, beneficiaryId, beneficiaryName, beneficiaryPhone, equipmentId, patrimonyNumber,
 equipmentType, orderId, status, statusDescription, loanDate, expectedReturnDate, renewalCount, retroactive,
@@ -343,14 +343,14 @@ signedDocumentAvailable, overdue, daysOverdue, dueSoon, returnedAt, cancelReason
 #### Fila de espera e notificações (RF06, RF12)
 | Método e rota | Perfis | Corpo → Resposta | Status |
 |---|---|---|---|
-| `POST /fila` | A,O | `{beneficiaryId, equipmentType, orderId?}` → 201 `WaitlistEntryResponse` (409 se já na fila do tipo) | 🟡 |
-| `GET /fila?tipo&status` | A,O | → `WaitlistEntryResponse[]` (sem `status` = AGUARDANDO+RESERVADO, na ordem efetiva, com `position`) | 🟡 |
-| `PATCH /fila/{id}/prioridade` · `DELETE /fila/{id}/prioridade` | A | `{reason: URGENCIA_SAUDE\|PESSOA_IDOSA\|POS_OPERATORIO, justification}` | 🟡 |
-| `POST /fila/{id}/recusa` | A,O | — → `WaitlistEntryResponse` (RN33) | 🟡 |
-| `PATCH /fila/{id}/remover` | A,O | `{reason}` → `WaitlistEntryResponse` | 🟡 |
-| `GET /notificacoes?status&tipo&destinatario&beneficiarioId` | A,O | → `NotificationResponse[]` | 🟡 |
-| `GET /notificacoes/contatos-manuais` | A,O | → `NotificationResponse[]` com `waLink` (botão "Lembrar no WhatsApp") | 🟡 |
-| `PATCH /notificacoes/{id}/concluir` | A,O | — → `NotificationResponse` | 🟡 |
+| `POST /fila` | A,O | `{beneficiaryId, equipmentType, orderId?}` → 201 `WaitlistEntryResponse` (409 se já na fila do tipo) | ✅ |
+| `GET /fila?tipo&status` | A,O | → `WaitlistEntryResponse[]` (sem `status` = AGUARDANDO+RESERVADO, na ordem efetiva, com `position`) | ✅ |
+| `PATCH /fila/{id}/prioridade` · `DELETE /fila/{id}/prioridade` | A | `{reason: URGENCIA_SAUDE\|PESSOA_IDOSA\|POS_OPERATORIO, justification}` | ✅ |
+| `POST /fila/{id}/recusa` | A,O | — → `WaitlistEntryResponse` (RN33) | ✅ |
+| `PATCH /fila/{id}/remover` | A,O | `{reason}` → `WaitlistEntryResponse` | ✅ |
+| `GET /notificacoes?status&tipo&destinatario&beneficiarioId` | A,O | → `NotificationResponse[]` | ✅ |
+| `GET /notificacoes/contatos-manuais` | A,O | → `NotificationResponse[]` com `waLink` (botão "Lembrar no WhatsApp") | ✅ |
+| `PATCH /notificacoes/{id}/concluir` | A,O | — → `NotificationResponse` | ✅ |
 | `GET /notificacoes/resumo-diario` | A | (RN49) | ❌ |
 
 #### Dashboard, relatórios, ajuda, assistente e parâmetros
@@ -358,11 +358,11 @@ signedDocumentAvailable, overdue, daysOverdue, dueSoon, returnedAt, cancelReason
 |---|---|---|---|
 | `GET /dashboard?inicio&fim&tipo` | A,O,V | indicadores (Consulta só números — RN56) | ❌ |
 | `GET /relatorios/{tipo}?formato=CSV\|PDF&inicio&fim&tipoEquipamento` | A,O,V | arquivo (mascarado p/ Consulta — RN43) | ❌ |
-| `GET /ajuda/publico?tipo` | **P** | → `HelpContentResponse[]` | 🟡 |
-| `GET /ajuda?tipo&todos` | A,O,V | → `HelpContentResponse[]` (filtrado pelo perfil; `todos=true` só Admin) | 🟡 |
-| `POST /ajuda` · `PUT /ajuda/{id}` · `PATCH /ajuda/{id}/inativar` · `/ativar` | A | `{type, title, content, keywords?, audiences[], displayOrder?}` | 🟡 |
-| `GET /assistente/sugestoes-alocacao` | A | → `{generatedAt, notice, suggestions[], attention[], summary[]}` (só sugere — RN50) | 🟡 |
-| `GET /assistente/perguntas?q=` | **P** | → `{question, answers[{id, type, title, content, score}], message}` | 🟡 |
+| `GET /ajuda/publico?tipo` | **P** | → `HelpContentResponse[]` | ✅ |
+| `GET /ajuda?tipo&todos` | A,O,V | → `HelpContentResponse[]` (filtrado pelo perfil; `todos=true` só Admin) | ✅ |
+| `POST /ajuda` · `PUT /ajuda/{id}` · `PATCH /ajuda/{id}/inativar` · `/ativar` | A | `{type, title, content, keywords?, audiences[], displayOrder?}` | ✅ |
+| `GET /assistente/sugestoes-alocacao` | A | → `{generatedAt, notice, suggestions[], attention[], summary[]}` (só sugere — RN50) | ✅ |
+| `GET /assistente/perguntas?q=` | **P** | → `{question, answers[{id, type, title, content, score}], message}` | ✅ |
 | `GET /parametros` · `PUT /parametros/{chave}` | A | `{value}` → `SystemParameterResponse` | ✅ |
 | `GET /dominios` *(proposta)* | **P** | enums + descrições para selects | ❌ |
 
